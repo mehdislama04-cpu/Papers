@@ -1,0 +1,187 @@
+@import 'tailwindcss';
+
+@source '../js/**/*.{ts,tsx}';
+@source '../views/**/*.blade.php';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+/* ---------------------------------------------------------------------------
+ * Theme
+ * Police systeme : sur iOS, -apple-system donne SF Pro + Dynamic Type.
+ * Aucune police web : un round-trip de moins au demarrage, et pas de FOUT.
+ * ------------------------------------------------------------------------- */
+@theme {
+    --font-sans:
+        -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, 'Helvetica Neue',
+        Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+
+    --color-brand-50: oklch(0.971 0.014 254);
+    --color-brand-100: oklch(0.936 0.032 254);
+    --color-brand-200: oklch(0.882 0.059 254);
+    --color-brand-300: oklch(0.809 0.096 254);
+    --color-brand-400: oklch(0.707 0.145 254);
+    --color-brand-500: oklch(0.623 0.188 254);
+    --color-brand-600: oklch(0.546 0.207 256);
+    --color-brand-700: oklch(0.488 0.19 258);
+    --color-brand-800: oklch(0.424 0.156 259);
+    --color-brand-900: oklch(0.379 0.122 259);
+
+    /* Hauteur de la barre d'onglets, hors safe-area. */
+    --spacing-tabbar: 3.25rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Socle iOS
+ * ------------------------------------------------------------------------- */
+:root {
+    color-scheme: light dark;
+
+    --safe-t: env(safe-area-inset-top, 0px);
+    --safe-r: env(safe-area-inset-right, 0px);
+    --safe-b: env(safe-area-inset-bottom, 0px);
+    --safe-l: env(safe-area-inset-left, 0px);
+
+    /* Hauteur de la barre d'onglets, hors safe-area. Duplique --spacing-tabbar
+     * du @theme : Tailwind n'emet ses variables que pour les utilitaires
+     * reellement utilises, on ne s'y appuie pas depuis du CSS brut. */
+    --tabbar-h: 3.25rem;
+
+    /* 100dvh a un bug de cold-start en standalone : fallback 100vh, puis dvh,
+     * puis --vh-px pose par le JS (lib/viewport.ts) au resize/orientationchange. */
+    --app-h: 100vh;
+}
+
+@supports (height: 100dvh) {
+    :root {
+        --app-h: 100dvh;
+    }
+}
+
+:root[data-vh-px] {
+    --app-h: var(--vh-px);
+}
+
+@layer base {
+    html {
+        height: var(--app-h);
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+
+    body {
+        height: var(--app-h);
+        margin: 0;
+        /* Coupe le pull-to-refresh et le rubber-band du body. Le scroll reel
+         * se fait dans .scroller. */
+        overscroll-behavior-y: none;
+        background-color: #fafafa;
+        color: #171717;
+        font-family: var(--font-sans);
+        -webkit-font-smoothing: antialiased;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        body {
+            background-color: #0a0a0a;
+            color: #f5f5f5;
+        }
+    }
+
+    #app {
+        height: 100%;
+    }
+
+    /* Tue le zoom double-tap SANS casser le pinch-zoom (accessibilite).
+     * `user-scalable=no` est un anti-pattern et Safari l'ignore de toute facon. */
+    button,
+    a,
+    label,
+    input,
+    select,
+    textarea,
+    [role='button'],
+    [role='tab'] {
+        touch-action: manipulation;
+    }
+
+    /* Empeche le zoom automatique d'iOS au focus : il se declenche sous 16px. */
+    input,
+    select,
+    textarea {
+        font-size: max(1rem, 16px);
+    }
+
+    /* Chrome de l'app : pas de selection ni de loupe. */
+    header,
+    nav,
+    .app-chrome {
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+    }
+}
+
+@layer components {
+    /* Conteneur plein ecran, respecte l'encoche (iPhone 14 Plus : encoche,
+     * pas de Dynamic Island) et le home indicator (34pt). */
+    .app-shell {
+        display: flex;
+        flex-direction: column;
+        height: var(--app-h);
+        padding-top: var(--safe-t);
+        padding-left: var(--safe-l);
+        padding-right: var(--safe-r);
+    }
+
+    /* Zone scrollable. Le momentum est natif depuis iOS 13 :
+     * -webkit-overflow-scrolling est obsolete. */
+    .scroller {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        /* Le contenu ne doit jamais finir sous la barre d'onglets. */
+        padding-bottom: calc(var(--tabbar-h) + var(--safe-b) + 1rem);
+    }
+
+    .tabbar {
+        position: fixed;
+        inset: auto 0 0 0;
+        z-index: 40;
+        padding-bottom: var(--safe-b);
+        padding-left: var(--safe-l);
+        padding-right: var(--safe-r);
+    }
+
+    /* Cibles tactiles HIG : 44x44 pt minimum. */
+    .tap-target {
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    /* Surface de scan : pas de menu contextuel a l'appui long, pas de selection,
+     * et on gere nous-memes le drag des 4 coins. */
+    .scan-surface {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: none;
+    }
+
+    /* ...mais le texte extrait du document DOIT rester copiable. */
+    .extracted-text {
+        -webkit-user-select: text;
+        user-select: text;
+        -webkit-touch-callout: default;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

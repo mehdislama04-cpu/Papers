@@ -1,0 +1,30 @@
+# Fichiers de travail produits par les bancs de test locaux.
+api/scripts/run.log
+api/scripts/pipeline-result.txt
+
+# Environnements et secrets — la protection de fond est dans api/.gitignore,
+# ceci est une seconde barriere volontairement redondante : le depot contient
+# des cles OpenAI et des mots de passe d'application iCloud chiffres par APP_KEY.
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Dependances
+/api/vendor
+/api/node_modules
+/api/public/build
+
+# Systeme
+.DS_Store
+Thumbs.db
+*.log
+
+# Artefacts generes par le build (vite-plugin-pwa)
+api/public/sw.js
+api/public/workbox-*.js
+
+# Base sqlite laissee par l installation initiale de Laravel (on utilise Postgres)
+api/database/database.sqlite

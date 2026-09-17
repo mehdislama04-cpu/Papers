@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg18
+    container_name: papers-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: papers
+      POSTGRES_USER: papers
+      POSTGRES_PASSWORD: papers
+      # Pas de --locale=fr_FR.UTF-8 : la locale n'est pas generee dans l'image
+      # et initdb echouerait. Le francais est porte par la configuration de
+      # recherche plein texte fr_unaccent (voir docker/postgres-init).
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "55432:5432"
+    volumes:
+      # PostgreSQL 18+ : monter /var/lib/postgresql (et NON /var/lib/postgresql/data),
+      # l'image place alors les donnees dans un sous-repertoire versionne.
+      - papers-pgdata:/var/lib/postgresql
+      - ./docker/postgres-init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U papers -d papers"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:8-alpine
+    container_name: papers-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "56379:6379"
+    volumes:
+      - papers-redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  papers-pgdata:
+  papers-redisdata:
