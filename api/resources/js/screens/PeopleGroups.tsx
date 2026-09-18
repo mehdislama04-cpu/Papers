@@ -42,7 +42,7 @@ export default function PeopleGroups() {
 
     return (
         <div className="px-4 pb-8">
-            <NavBar back="Personnes" backTo="/?view=people" title="Regroupements" />
+            <NavBar back="Documents" backTo="/" title="Regroupements" />
 
             <p className="mb-4 px-0.5 text-[0.9375rem] leading-[1.3125rem] text-fg-2">
                 Un document imprime le nom du destinataire comme il veut. Papers rapproche les graphies

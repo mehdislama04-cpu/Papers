@@ -43,7 +43,13 @@ const router = createBrowserRouter([
                     // Statique AVANT dynamique : sans cela « groups » serait lu
                     // comme une cle de personne.
                     { path: 'people/groups', element: screen('PeopleGroups', 'Regroupements') },
+                    // Navigation a trois marches : personnes -> categories de
+                    // cette personne -> documents de cette categorie.
                     { path: 'people/:person', element: screen('PersonDocuments', 'Personne') },
+                    {
+                        path: 'people/:person/:slug',
+                        element: screen('PersonCategoryDocuments', 'Documents'),
+                    },
                     { path: 'scan', element: screen('Scanner', 'Scanner') },
                     { path: 'todos', element: screen('Todos', 'Taches') },
                     { path: 'settings', element: screen('Settings', 'Reglages') },

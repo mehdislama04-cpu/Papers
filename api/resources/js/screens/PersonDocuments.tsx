@@ -1,31 +1,33 @@
 import { useMemo } from 'react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { api, type PaginatedEnvelope } from '../lib/api';
-import { categoryColor } from '../lib/categories';
 import { groupByRecipient, PEOPLE_PAGE } from '../lib/people';
 import { attachStored, useStoredPeople } from '../lib/personPhotos';
+import { PICTOGRAM_FAMILY } from '../lib/pictograms';
 import type { Document } from '../lib/types';
 
 import { NavBar } from '../components/ui/NavBar';
+import { Chevron } from '../components/ui/Chips';
+import { CategoryTile } from '../components/ui/CategoryTile';
 import { PersonAvatar } from '../components/ui/PersonAvatar';
-import { DocumentRow } from '../components/ui/DocumentRow';
-import {
-    DocumentSkeletons,
-    EmptyState,
-    ErrorNote,
-    Group,
-    SectionTitle,
-} from '../components/ui/Layout';
+import { DocumentSkeletons, EmptyState, ErrorNote, Group } from '../components/ui/Layout';
 
 const UNASSIGNED = 'sans-destinataire';
 
-/** Une echeance depassee ou proche, sur un document non termine. */
-function pressing(document: Document): boolean {
-    return (document.todos_count ?? 0) > 0;
-}
-
+/**
+ * Deuxieme marche : les categories d'une personne.
+ *
+ * Cet ecran ne montre plus la liste des documents — elle est descendue d'un
+ * cran. Une personne qui accumule trente papiers ne se lit pas en une liste
+ * plate : ses categories disent d'un coup d'oeil ce qu'elle genere comme
+ * paperasse, et c'est cette repartition qu'on vient chercher ici.
+ *
+ * Seules les categories REELLEMENT presentes sont affichees. Une grille de
+ * douze tuiles dont neuf vides ferait passer un rangement possible pour un
+ * rangement existant.
+ */
 export default function PersonDocuments() {
     const { person: key } = useParams<{ person: string }>();
     const decoded = key ? decodeURIComponent(key) : '';
@@ -44,39 +46,47 @@ export default function PersonDocuments() {
         [documents.data],
     );
 
-    const withPhotos = useMemo(
+    const withStored = useMemo(
         () => attachStored(people, storedPeople.data?.data ?? []),
         [people, storedPeople.data],
     );
 
-    const person = withPhotos.find((candidate) => candidate.key === decoded);
+    const person = withStored.find((candidate) => candidate.key === decoded);
     const list = isUnassigned ? unassigned : (person?.documents ?? []);
-    const urgent = list.filter(pressing);
-    const rest = list.filter((document) => !pressing(document));
-
     const name = isUnassigned ? 'Sans destinataire' : (person?.name ?? 'Personne');
+
+    /*
+     | Repartition par categorie. Pour une personne, `spread` l'a deja calculee ;
+     | pour les documents sans destinataire il faut la refaire, ils ne forment
+     | pas une personne.
+     */
+    const spread = useMemo(() => {
+        if (!isUnassigned) return person?.spread ?? [];
+
+        const map = new Map<string, { category: NonNullable<Document['category']>; count: number }>();
+
+        for (const document of unassigned) {
+            if (!document.category) continue;
+            const entry = map.get(document.category.slug) ?? { category: document.category, count: 0 };
+            entry.count += 1;
+            map.set(document.category.slug, entry);
+        }
+
+        return [...map.values()].sort((a, b) => b.count - a.count);
+    }, [isUnassigned, person, unassigned]);
+
+    const classified = spread.reduce((total, entry) => total + entry.count, 0);
+    const unclassified = list.length - classified;
+
+    const base = `/people/${encodeURIComponent(decoded)}`;
 
     return (
         <div className="px-4 pb-8">
-            <NavBar back="Personnes" backTo="/?view=people" />
+            <NavBar back="Documents" backTo="/" />
 
-            <div className="flex flex-col items-center gap-2.5 pt-1 pb-5">
+            <div className="flex flex-col items-center gap-2 pt-1 pb-4">
                 {isUnassigned || !person ? (
-                    <span className="inline-flex size-19 items-center justify-center rounded-full bg-surface-2 text-fg-3">
-                        <svg
-                            viewBox="0 0 24 24"
-                            className="size-9"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth={1.6}
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            aria-hidden="true"
-                        >
-                            <circle cx="12" cy="8" r="3.6" />
-                            <path d="M4.8 20a7.4 7.4 0 0 1 14.4 0" />
-                        </svg>
-                    </span>
+                    <img src={PICTOGRAM_FAMILY} alt="" width={76} height={76} className="size-19" />
                 ) : (
                     /*
                      * Ici l'avatar n'est pas dans un lien : il devient un vrai
@@ -92,88 +102,64 @@ export default function PersonDocuments() {
                 </h1>
 
                 {!documents.isPending && (
-                    <p className="text-[0.9375rem] text-fg-3">
-                        {list.length} document{list.length > 1 ? 's' : ''}
+                    <p className="text-center text-[0.9375rem] text-fg-3">
+                        Choisissez une categorie de documents.
                     </p>
                 )}
             </div>
 
-            {/* Repartition par categorie : ce que cette personne genere comme
-                paperasse, d'un coup d'oeil. */}
-            {person && person.spread.length > 1 && (
-                <>
-                    <div className="mb-2 flex h-2.5 overflow-hidden rounded-full">
-                        {person.spread.map((entry) => (
-                            <span
-                                key={entry.category.slug}
-                                style={{
-                                    backgroundColor: categoryColor(entry.category),
-                                    width: `${(entry.count / person.documents.length) * 100}%`,
-                                }}
-                            />
-                        ))}
-                    </div>
-                    <div className="mb-1 flex flex-wrap justify-center gap-x-3 gap-y-1.5">
-                        {person.spread.map((entry) => (
-                            <span
-                                key={entry.category.slug}
-                                className="inline-flex items-center gap-1.5 text-xs text-fg-2"
-                            >
-                                <span
-                                    className="size-2.5 rounded-[3px]"
-                                    style={{ backgroundColor: categoryColor(entry.category) }}
-                                    aria-hidden="true"
-                                />
-                                {entry.category.name} {entry.count}
-                            </span>
-                        ))}
-                    </div>
-                </>
-            )}
-
-            {documents.isPending && <DocumentSkeletons />}
+            {documents.isPending && <DocumentSkeletons count={2} />}
             {documents.isError && <ErrorNote>Impossible de charger les documents.</ErrorNote>}
 
             {!documents.isPending && list.length === 0 && (
-                <EmptyState title="Aucun document">
-                    Rien n'est rattache a ce destinataire.
-                </EmptyState>
+                <EmptyState title="Aucun document">Rien n'est rattache a ce destinataire.</EmptyState>
             )}
 
-            {urgent.length > 0 && (
+            {list.length > 0 && (
                 <>
-                    <SectionTitle>A traiter</SectionTitle>
-                    <Group>
-                        {urgent.map((document, index) => (
-                            <DocumentRow
-                                key={document.id}
-                                document={document}
-                                index={index}
-                                context="person"
-                            />
-                        ))}
+                    <Group className="mb-3">
+                        <Link
+                            to={`${base}/tout`}
+                            className="pressable flex items-center gap-3.5 px-3.5 py-3 active:bg-surface-2"
+                        >
+                            <div className="min-w-0 flex-1">
+                                <p className="leading-[1.375rem] font-semibold">Tous ses documents</p>
+                                <p className="text-[0.875rem] text-fg-3">
+                                    {list.length} document{list.length > 1 ? 's' : ''}, classes par date
+                                </p>
+                            </div>
+                            <Chevron />
+                        </Link>
                     </Group>
-                </>
-            )}
 
-            {rest.length > 0 && (
-                <>
-                    {urgent.length > 0 && <SectionTitle>Tous ses documents</SectionTitle>}
-                    <Group className={urgent.length > 0 ? undefined : 'mt-2'}>
-                        {rest.map((document, index) => (
-                            <DocumentRow
-                                key={document.id}
-                                document={document}
-                                index={index}
-                                context="person"
+                    <div className="grid grid-cols-3 gap-2.5">
+                        {spread.map((entry) => (
+                            <CategoryTile
+                                key={entry.category.slug}
+                                category={entry.category}
+                                count={entry.count}
+                                to={`${base}/${entry.category.slug}`}
                             />
                         ))}
-                    </Group>
+
+                        {unclassified > 0 && (
+                            <CategoryTile
+                                category={{
+                                    slug: 'sans-categorie',
+                                    name: 'Sans categorie',
+                                    color: null,
+                                    icon: 'folder',
+                                }}
+                                count={unclassified}
+                                to={`${base}/sans-categorie`}
+                            />
+                        )}
+                    </div>
                 </>
             )}
 
             {person && person.variants.length > 1 && (
-                <p className="mt-4 px-2.5 text-center text-[0.875rem] leading-5 text-fg-3">
+                <p className="mt-5 px-2.5 text-center text-[0.875rem] leading-5 text-fg-3">
                     Regroupe {person.variants.length} graphies :{' '}
                     {person.variants.map((variant) => `« ${variant.raw} »`).join(', ')}.
                 </p>

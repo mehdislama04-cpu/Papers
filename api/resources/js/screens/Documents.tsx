@@ -1,17 +1,17 @@
 import { useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router';
+import { Link } from 'react-router';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
-import { api, type PaginatedEnvelope, type Envelope } from '../lib/api';
+import { api, type PaginatedEnvelope } from '../lib/api';
 import { categoryColor } from '../lib/categories';
 import { useOutbox } from '../lib/hooks';
-import { groupByRecipient, needsAttention, PEOPLE_PAGE } from '../lib/people';
+import { groupByRecipient, needsAttention, PEOPLE_PAGE, type Person } from '../lib/people';
 import { attachStored, useStoredPeople } from '../lib/personPhotos';
-import type { Category, Document, DocumentStatus } from '../lib/types';
+import { PICTOGRAM_FAMILY, PICTOGRAM_PEOPLE } from '../lib/pictograms';
+import type { Document, DocumentStatus } from '../lib/types';
 
 import { NavBar } from '../components/ui/NavBar';
-import { Segmented } from '../components/ui/Segmented';
-import { CategoryChip, Chevron } from '../components/ui/Chips';
+import { Chevron } from '../components/ui/Chips';
 import { PersonAvatar } from '../components/ui/PersonAvatar';
 import { DocumentRow } from '../components/ui/DocumentRow';
 import {
@@ -22,14 +22,6 @@ import {
     Group,
     SectionTitle,
 } from '../components/ui/Layout';
-
-type View = 'all' | 'people' | 'categories';
-
-const VIEWS: Array<{ value: View; label: string }> = [
-    { value: 'all', label: 'Tous' },
-    { value: 'people', label: 'Personnes' },
-    { value: 'categories', label: 'Categories' },
-];
 
 const STATUS_FILTERS: Array<{ value: DocumentStatus | ''; label: string }> = [
     { value: '', label: 'Tous' },
@@ -45,13 +37,7 @@ function pollWhilePending(data: PaginatedEnvelope<Document> | undefined) {
     return data?.data.some((doc) => !doc.is_terminal) ? 4000 : false;
 }
 
-function SearchField({
-    value,
-    onChange,
-}: {
-    value: string;
-    onChange: (value: string) => void;
-}) {
+function SearchField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
     return (
         <div className="mb-3 flex h-11 items-center gap-2 rounded-sm bg-surface-2 px-3">
             <svg
@@ -79,18 +65,166 @@ function SearchField({
 }
 
 /* -------------------------------------------------------------------------
- * Vue « Tous » — la liste chronologique, la recherche et les filtres.
+ * Les personnes — premiere marche de la navigation.
+ *
+ * On entre dans ses papiers par QUI ils concernent, pas par ce qu'ils sont :
+ * une personne rassemble naturellement des categories heterogenes, alors
+ * qu'une categorie eparpille les personnes.
  * ---------------------------------------------------------------------- */
-function AllView() {
-    const [search, setSearch] = useState('');
-    const [status, setStatus] = useState<DocumentStatus | ''>('');
-    const [semantic, setSemantic] = useState(false);
+function PersonRow({ person }: { person: Person }) {
+    return (
+        <Link
+            to={`/people/${encodeURIComponent(person.key)}`}
+            className="pressable flex items-center gap-3.5 px-3.5 py-3 active:bg-surface-2"
+        >
+            <PersonAvatar person={person} />
+            <div className="min-w-0 flex-1">
+                <p className="truncate leading-[1.375rem] font-semibold">{person.name}</p>
+                <p className="flex items-center gap-1.5 text-[0.875rem] text-fg-3">
+                    {person.spread.length > 0 && (
+                        <span className="flex gap-[3px]" aria-hidden="true">
+                            {person.spread.slice(0, 3).map((entry) => (
+                                <span
+                                    key={entry.category.slug}
+                                    className="size-2 rounded-[3px]"
+                                    style={{ backgroundColor: categoryColor(entry.category) }}
+                                />
+                            ))}
+                        </span>
+                    )}
+                    {person.documents.length} document{person.documents.length > 1 ? 's' : ''}
+                </p>
+            </div>
+            <Chevron />
+        </Link>
+    );
+}
 
+function PeopleSection() {
+    // Une page large : le regroupement se fait cote client, faute d'entite
+    // « personne » cote serveur (cf. lib/people.ts).
+    const documents = useQuery({
+        queryKey: ['documents', 'people'],
+        queryFn: () => api.get<PaginatedEnvelope<Document>>(PEOPLE_PAGE),
+        placeholderData: keepPreviousData,
+    });
+
+    const storedPeople = useStoredPeople();
+
+    const { people: grouped, unassigned } = useMemo(
+        () => groupByRecipient(documents.data?.data ?? []),
+        [documents.data],
+    );
+
+    const people = useMemo(
+        () => attachStored(grouped, storedPeople.data?.data ?? []),
+        [grouped, storedPeople.data],
+    );
+
+    const toMerge = useMemo(() => needsAttention(people), [people]);
+
+    if (documents.isPending) {
+        return (
+            <>
+                <SectionTitle>Personnes</SectionTitle>
+                <Group>
+                    <div className="h-[4.25rem] animate-pulse bg-surface-2" aria-hidden="true" />
+                    <div className="h-[4.25rem] animate-pulse bg-surface-2" aria-hidden="true" />
+                </Group>
+            </>
+        );
+    }
+
+    if (people.length === 0 && unassigned.length === 0) return null;
+
+    return (
+        <>
+            <SectionTitle>Personnes</SectionTitle>
+            <Group>
+                {people.map((person) => (
+                    <PersonRow key={person.key} person={person} />
+                ))}
+
+                {unassigned.length > 0 && (
+                    <Link
+                        to="/people/sans-destinataire"
+                        className="pressable flex items-center gap-3.5 px-3.5 py-3 active:bg-surface-2"
+                    >
+                        <img
+                            src={PICTOGRAM_FAMILY}
+                            alt=""
+                            width={46}
+                            height={46}
+                            className="size-[2.875rem] shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                            <p className="truncate leading-[1.375rem] font-semibold text-fg-2">
+                                Sans destinataire
+                            </p>
+                            <p className="text-[0.875rem] text-fg-3">
+                                {unassigned.length} document{unassigned.length > 1 ? 's' : ''}
+                            </p>
+                        </div>
+                        <Chevron />
+                    </Link>
+                )}
+
+                {toMerge.length > 0 && (
+                    <Link
+                        to="/people/groups"
+                        className="pressable flex items-center gap-3.5 px-3.5 py-3 active:bg-surface-2"
+                    >
+                        <img
+                            src={PICTOGRAM_PEOPLE}
+                            alt=""
+                            width={46}
+                            height={46}
+                            className="size-[2.875rem] shrink-0"
+                        />
+                        <div className="min-w-0 flex-1">
+                            <p className="leading-[1.375rem] font-semibold">
+                                {toMerge.length === 1
+                                    ? 'Un nom rapproche de plusieurs graphies'
+                                    : `${toMerge.length} noms rapproches de plusieurs graphies`}
+                            </p>
+                            <p className="truncate text-[0.875rem] text-fg-3">
+                                {toMerge[0].variants
+                                    .slice(0, 2)
+                                    .map((variant) => `« ${variant.raw} »`)
+                                    .join(', ')}
+                                …
+                            </p>
+                        </div>
+                        <Chevron />
+                    </Link>
+                )}
+            </Group>
+        </>
+    );
+}
+
+/* -------------------------------------------------------------------------
+ * Tous les documents, sous les personnes.
+ * ---------------------------------------------------------------------- */
+function AllDocuments({
+    search,
+    status,
+    onStatus,
+    semantic,
+    onSemantic,
+}: {
+    search: string;
+    status: DocumentStatus | '';
+    onStatus: (value: DocumentStatus | '') => void;
+    semantic: boolean;
+    onSemantic: (value: boolean) => void;
+}) {
     const query = useMemo(() => {
         const params = new URLSearchParams();
         if (search.trim()) params.set('search', search.trim());
         if (status) params.set('status', status);
         if (semantic && search.trim()) params.set('semantic', '1');
+
         return params.toString();
     }, [search, status, semantic]);
 
@@ -106,14 +240,14 @@ function AllView() {
 
     return (
         <>
-            <SearchField value={search} onChange={setSearch} />
+            <SectionTitle>{filtering ? 'Resultats' : 'Tous les documents'}</SectionTitle>
 
-            <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1">
+            <div className="-mx-4 mb-3 flex gap-2 overflow-x-auto px-4 pb-1">
                 {STATUS_FILTERS.map((filter) => (
                     <button
                         key={filter.value}
                         type="button"
-                        onClick={() => setStatus(filter.value)}
+                        onClick={() => onStatus(filter.value)}
                         className={`pressable flex h-9 shrink-0 items-center rounded-full px-3.5 text-[0.9375rem] ${
                             status === filter.value
                                 ? 'bg-accent font-semibold text-on-accent'
@@ -126,11 +260,11 @@ function AllView() {
             </div>
 
             {search.trim() && (
-                <label className="mb-4 flex min-h-11 items-center gap-2.5 text-[0.9375rem] text-fg-2">
+                <label className="mb-3 flex min-h-11 items-center gap-2.5 text-[0.9375rem] text-fg-2">
                     <input
                         type="checkbox"
                         checked={semantic}
-                        onChange={(event) => setSemantic(event.target.checked)}
+                        onChange={(event) => onSemantic(event.target.checked)}
                         className="size-5 accent-[var(--color-accent)]"
                     />
                     Chercher par le sens, et non par mots exacts
@@ -185,259 +319,32 @@ function AllView() {
     );
 }
 
-/* -------------------------------------------------------------------------
- * Vue « Categories » — les tuiles.
- * ---------------------------------------------------------------------- */
-function CategoryTile({ category }: { category: Category }) {
-    const count = category.documents_count ?? 0;
-
-    return (
-        <Link
-            to={`/categories/${category.slug}`}
-            className="pressable flex min-h-23 flex-col justify-between gap-2 rounded-md bg-surface p-3.5 shadow-[0_1px_2px_oklch(0.2_0.01_258/0.05)]"
-        >
-            <CategoryChip category={category} size="md" />
-            <div>
-                <p className="font-semibold tracking-[-0.01em]">{category.name}</p>
-                <p className="text-[0.8125rem] text-fg-3">
-                    {count === 0 ? 'Vide' : `${count} document${count > 1 ? 's' : ''}`}
-                </p>
-            </div>
-        </Link>
-    );
-}
-
-function CategoriesView() {
-    const categories = useQuery({
-        queryKey: ['categories'],
-        queryFn: () => api.get<Envelope<Category[]>>('/categories'),
-        staleTime: 5 * 60 * 1000,
-    });
-
-    // Le serveur trie par nom. On remonte ce qui est reellement rempli : une
-    // categorie a 34 documents interesse plus qu'une categorie vide, et
-    // « Administratif » n'a aucune raison de passer devant « Facture ».
-    const list = useMemo(
-        () =>
-            [...(categories.data?.data ?? [])].sort(
-                (a, b) =>
-                    (b.documents_count ?? 0) - (a.documents_count ?? 0) ||
-                    a.name.localeCompare(b.name, 'fr'),
-            ),
-        [categories.data],
-    );
-
-    if (categories.isPending) {
-        return (
-            <div className="grid grid-cols-2 gap-2.5">
-                {Array.from({ length: 8 }, (_, index) => (
-                    <div key={index} className="h-23 rounded-md bg-surface-2" aria-hidden="true" />
-                ))}
-            </div>
-        );
-    }
-
-    if (categories.isError) return <ErrorNote>Impossible de charger les categories.</ErrorNote>;
-
-    return (
-        <>
-            <div className="grid grid-cols-2 gap-2.5">
-                {list.map((category) => (
-                    <CategoryTile key={category.id} category={category} />
-                ))}
-            </div>
-            <p className="mt-4 px-2.5 text-center text-[0.875rem] leading-5 text-fg-3">
-                Une categorie vide reste affichee : c'est un rangement possible, pas une absence.
-            </p>
-        </>
-    );
-}
-
-/* -------------------------------------------------------------------------
- * Vue « Personnes » — regroupement des destinataires.
- * ---------------------------------------------------------------------- */
-function PeopleView() {
-    // Une page large : le regroupement se fait cote client, faute d'entite
-    // « personne » cote serveur (cf. lib/people.ts).
-    const documents = useQuery({
-        queryKey: ['documents', 'people'],
-        queryFn: () => api.get<PaginatedEnvelope<Document>>(PEOPLE_PAGE),
-        placeholderData: keepPreviousData,
-    });
-
-    const storedPeople = useStoredPeople();
-
-    const { people: grouped, unassigned } = useMemo(
-        () => groupByRecipient(documents.data?.data ?? []),
-        [documents.data],
-    );
-
-    // Les groupes viennent des documents, les photos du serveur : on recolle
-    // les deux par la cle de rapprochement.
-    const people = useMemo(
-        () => attachStored(grouped, storedPeople.data?.data ?? []),
-        [grouped, storedPeople.data],
-    );
-
-    const toMerge = useMemo(() => needsAttention(people), [people]);
-
-    if (documents.isPending) return <DocumentSkeletons count={3} />;
-    if (documents.isError) return <ErrorNote>Impossible de charger les documents.</ErrorNote>;
-
-    if (people.length === 0 && unassigned.length === 0) {
-        return (
-            <EmptyState
-                icon={
-                    <svg
-                        viewBox="0 0 24 24"
-                        className="size-13"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={1.3}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                    >
-                        <circle cx="12" cy="8" r="3.6" />
-                        <path d="M4.8 20a7.4 7.4 0 0 1 14.4 0" />
-                    </svg>
-                }
-                title="Personne, pour l'instant"
-            >
-                Le destinataire est extrait du document lui-meme. Il apparaitra des qu'un document
-                analyse en portera un.
-            </EmptyState>
-        );
-    }
-
-    return (
-        <>
-            <Group>
-                {people.map((person, index) => (
-                    <Link
-                        key={person.key}
-                        to={`/people/${encodeURIComponent(person.key)}`}
-                        className="pressable flex items-center gap-3.5 px-3.5 py-3 active:bg-surface-2"
-                        style={{ ['--i' as string]: Math.min(index, 8) }}
-                    >
-                        <PersonAvatar person={person} />
-                        <div className="min-w-0 flex-1">
-                            <p className="truncate leading-[1.375rem] font-semibold">{person.name}</p>
-                            <p className="flex items-center gap-1.5 text-[0.875rem] text-fg-3">
-                                {person.spread.length > 0 && (
-                                    <span className="flex gap-[3px]" aria-hidden="true">
-                                        {person.spread.slice(0, 3).map((entry) => (
-                                            <span
-                                                key={entry.category.slug}
-                                                className="size-2 rounded-[3px]"
-                                                style={{ backgroundColor: categoryColor(entry.category) }}
-                                            />
-                                        ))}
-                                    </span>
-                                )}
-                                {person.documents.length} document
-                                {person.documents.length > 1 ? 's' : ''}
-                            </p>
-                        </div>
-                        <Chevron />
-                    </Link>
-                ))}
-
-                {unassigned.length > 0 && (
-                    <Link
-                        to="/people/sans-destinataire"
-                        className="pressable flex items-center gap-3.5 px-3.5 py-3 active:bg-surface-2"
-                    >
-                        <span className="inline-flex size-[2.875rem] shrink-0 items-center justify-center rounded-full bg-surface-2 text-fg-3">
-                            <svg
-                                viewBox="0 0 24 24"
-                                className="size-5.5"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth={1.8}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                            >
-                                <circle cx="12" cy="8" r="3.6" />
-                                <path d="M4.8 20a7.4 7.4 0 0 1 14.4 0" />
-                            </svg>
-                        </span>
-                        <div className="min-w-0 flex-1">
-                            <p className="truncate leading-[1.375rem] font-semibold text-fg-2">
-                                Sans destinataire
-                            </p>
-                            <p className="text-[0.875rem] text-fg-3">
-                                {unassigned.length} document{unassigned.length > 1 ? 's' : ''}
-                            </p>
-                        </div>
-                        <Chevron />
-                    </Link>
-                )}
-            </Group>
-
-            {toMerge.length > 0 && (
-                <>
-                    <SectionTitle>Regroupements</SectionTitle>
-                    <Group>
-                        <Link
-                            to="/people/groups"
-                            className="pressable flex items-center gap-3.5 px-3.5 py-3 active:bg-surface-2"
-                        >
-                            <span className="inline-flex size-[2.875rem] shrink-0 items-center justify-center rounded-full bg-soon-bg text-[1.0625rem] font-semibold text-soon-fg">
-                                {toMerge.length}
-                            </span>
-                            <div className="min-w-0 flex-1">
-                                <p className="leading-[1.375rem] font-semibold">
-                                    {toMerge.length === 1
-                                        ? 'Un nom rapproche de plusieurs graphies'
-                                        : `${toMerge.length} noms rapproches de plusieurs graphies`}
-                                </p>
-                                <p className="truncate text-[0.875rem] text-fg-3">
-                                    {toMerge[0].variants
-                                        .slice(0, 2)
-                                        .map((variant) => `« ${variant.raw} »`)
-                                        .join(', ')}
-                                    …
-                                </p>
-                            </div>
-                            <Chevron />
-                        </Link>
-                    </Group>
-                    <p className="mt-3 px-2.5 text-center text-[0.875rem] leading-5 text-fg-3">
-                        Papers ne rapproche que les graphies d'un meme nom. Verifiez qu'aucune ne l'a
-                        ete a tort.
-                    </p>
-                </>
-            )}
-        </>
-    );
-}
-
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Premiere marche : les personnes, puis tous les documents.
+ *
+ * Le selecteur « Tous / Personnes / Categories » a disparu. Il demandait de
+ * choisir un classement AVANT de savoir ce qu'on cherchait, et les categories
+ * n'ont de sens qu'une fois la personne connue — un « Facture » qui melange
+ * trois membres du foyer ne range rien. Elles vivent maintenant une marche plus
+ * bas, dans la fiche de chaque personne.
+ *
+ * Pendant une recherche, la liste des personnes s'efface : la recherche porte
+ * sur les documents, la garder afficherait un resultat qui ne bouge pas.
+ */
 export default function Documents() {
-    // La vue vit dans l'URL, pas dans un etat local : sans cela, revenir d'une
-    // categorie ou d'une personne ramenerait toujours sur « Tous ».
-    // Query param et non fragment : sur iOS, un changement de hash revoque la
-    // permission camera d'une PWA installee (ARCHITECTURE.md §3).
-    const [params, setParams] = useSearchParams();
-    const raw = params.get('view');
-    const view: View = raw === 'people' || raw === 'categories' ? raw : 'all';
-
-    const setView = (next: View) => {
-        const copy = new URLSearchParams(params);
-        if (next === 'all') copy.delete('view');
-        else copy.set('view', next);
-        setParams(copy, { replace: true });
-    };
+    const [search, setSearch] = useState('');
+    const [status, setStatus] = useState<DocumentStatus | ''>('');
+    const [semantic, setSemantic] = useState(false);
 
     const outbox = useOutbox();
+    const filtering = Boolean(search.trim() || status);
 
     return (
         <div className="px-4 pb-8">
             <NavBar title="Documents">
-                <Segmented value={view} onChange={setView} options={VIEWS} label="Classement" />
+                <SearchField value={search} onChange={setSearch} />
             </NavBar>
 
             {outbox.length > 0 && (
@@ -447,9 +354,15 @@ export default function Documents() {
                 </p>
             )}
 
-            {view === 'all' && <AllView />}
-            {view === 'people' && <PeopleView />}
-            {view === 'categories' && <CategoriesView />}
+            {!filtering && <PeopleSection />}
+
+            <AllDocuments
+                search={search}
+                status={status}
+                onStatus={setStatus}
+                semantic={semantic}
+                onSemantic={setSemantic}
+            />
         </div>
     );
 }

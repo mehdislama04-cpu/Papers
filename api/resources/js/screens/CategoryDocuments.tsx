@@ -47,7 +47,7 @@ export default function CategoryDocuments() {
 
     return (
         <div className="px-4 pb-8">
-            <NavBar back="Categories" backTo="/?view=categories" />
+            <NavBar back="Documents" backTo="/" />
 
             <div className="flex flex-col items-center gap-2.5 pt-1 pb-5">
                 {category && <CategoryChip category={category} size="lg" />}

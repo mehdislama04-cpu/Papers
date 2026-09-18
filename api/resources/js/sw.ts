@@ -106,14 +106,21 @@ registerRoute(
 );
 
 /* -------------------------------------------------------------------------- */
-/* 4. Icones, manifeste et autres statiques de la racine                       */
+/* 4. Icones, pictogrammes, manifeste et autres statiques de la racine         */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * `/pictograms/` compte autant que `/icons/` : ce sont les vignettes des
+ * categories. Sans cette regle elles repartiraient sur le reseau a chaque
+ * affichage, et la grille d'une personne serait pleine de trous hors ligne —
+ * exactement la ou l'app doit continuer a fonctionner.
+ */
 registerRoute(
     ({ url, sameOrigin }) =>
         sameOrigin &&
         !isNetworkOnly(url.pathname) &&
         (/^\/icons\//.test(url.pathname) ||
+            /^\/pictograms\//.test(url.pathname) ||
             /^\/(manifest\.webmanifest|favicon\.(ico|svg)|apple-touch-icon.*\.png)$/.test(
                 url.pathname,
             )),
@@ -121,7 +128,7 @@ registerRoute(
         cacheName: STATIC_CACHE,
         plugins: [
             new CacheableResponsePlugin({ statuses: [0, 200] }),
-            new ExpirationPlugin({ maxEntries: 40, maxAgeSeconds: 30 * 24 * 3600 }),
+            new ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 30 * 24 * 3600 }),
         ],
     }),
 );
