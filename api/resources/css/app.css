@@ -5,7 +5,13 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 /* ---------------------------------------------------------------------------
- * Theme
+ * Systeme de design « encre & papier »
+ *
+ * Deux familles brutes (ink, paper) et, par-dessus, des ROLES semantiques.
+ * Les ecrans n'ecrivent que des roles : `bg-surface`, `text-fg-2`,
+ * `border-hairline`. Le mode sombre est porte par la redefinition des roles
+ * plus bas — aucun ecran ne doit contenir de variante `dark:`.
+ *
  * Police systeme : sur iOS, -apple-system donne SF Pro + Dynamic Type.
  * Aucune police web : un round-trip de moins au demarrage, et pas de FOUT.
  * ------------------------------------------------------------------------- */
@@ -14,19 +20,113 @@
         -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, 'Helvetica Neue',
         Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
 
-    --color-brand-50: oklch(0.971 0.014 254);
-    --color-brand-100: oklch(0.936 0.032 254);
-    --color-brand-200: oklch(0.882 0.059 254);
-    --color-brand-300: oklch(0.809 0.096 254);
-    --color-brand-400: oklch(0.707 0.145 254);
-    --color-brand-500: oklch(0.623 0.188 254);
-    --color-brand-600: oklch(0.546 0.207 256);
-    --color-brand-700: oklch(0.488 0.19 258);
-    --color-brand-800: oklch(0.424 0.156 259);
-    --color-brand-900: oklch(0.379 0.122 259);
+    /* — Encre : l'accent, un seul pour toute l'app. — */
+    --color-ink-50: oklch(0.97 0.013 258);
+    --color-ink-100: oklch(0.932 0.028 258);
+    --color-ink-200: oklch(0.874 0.052 258);
+    --color-ink-300: oklch(0.783 0.089 258);
+    --color-ink-400: oklch(0.672 0.132 258);
+    --color-ink-500: oklch(0.573 0.167 258);
+    --color-ink-600: oklch(0.488 0.168 258);
+    --color-ink-700: oklch(0.416 0.144 258);
+    --color-ink-800: oklch(0.352 0.114 258);
+    --color-ink-900: oklch(0.302 0.088 258);
+
+    /* — Papier : neutres tres legerement froids (chroma <= 0.013, teinte 258).
+         Un neutre chaud ferait jaunir les scans poses dessus. — */
+    --color-paper-0: oklch(1 0 0);
+    --color-paper-50: oklch(0.985 0.002 258);
+    --color-paper-100: oklch(0.967 0.003 258);
+    --color-paper-200: oklch(0.928 0.005 258);
+    --color-paper-300: oklch(0.872 0.007 258);
+    --color-paper-400: oklch(0.712 0.011 258);
+    --color-paper-500: oklch(0.565 0.013 258);
+    --color-paper-600: oklch(0.458 0.013 258);
+    --color-paper-700: oklch(0.376 0.012 258);
+    --color-paper-800: oklch(0.272 0.011 258);
+    --color-paper-900: oklch(0.198 0.01 258);
+    --color-paper-950: oklch(0.146 0.009 258);
+    --color-paper-1000: oklch(0.108 0.008 258);
+
+    /* — Roles. Valeurs du mode clair ; le mode sombre les redefinit. — */
+    --color-bg: oklch(0.985 0.002 258);
+    --color-surface: oklch(1 0 0);
+    --color-surface-2: oklch(0.967 0.003 258);
+    --color-hairline: oklch(0.872 0.007 258 / 0.7);
+    --color-edge: oklch(0.928 0.005 258);
+    --color-fg: oklch(0.146 0.009 258);
+    --color-fg-2: oklch(0.458 0.013 258);
+    --color-fg-3: oklch(0.565 0.013 258);
+    --color-accent: oklch(0.488 0.168 258);
+    --color-accent-bg: oklch(0.97 0.013 258);
+    --color-on-accent: oklch(1 0 0);
+    --color-chrome: oklch(1 0 0 / 0.82);
+
+    /* — Signaux. Ne servent QU'aux etats, jamais a la decoration. — */
+    --color-late-fg: oklch(0.52 0.195 27);
+    --color-late-bg: oklch(0.955 0.025 27);
+    --color-soon-fg: oklch(0.505 0.12 65);
+    --color-soon-bg: oklch(0.96 0.045 80);
+    --color-done-fg: oklch(0.492 0.11 158);
+    --color-done-bg: oklch(0.955 0.035 158);
+
+    /* — Rayons : trois valeurs, pas six. — */
+    --radius-sm: 0.625rem; /* 10px — controles */
+    --radius-md: 1rem; /* 16px — cartes, champs */
+    --radius-lg: 1.375rem; /* 22px — grandes surfaces */
+
+    /* — Mouvement : une courbe, trois durees. — */
+    --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
 
     /* Hauteur de la barre d'onglets, hors safe-area. */
     --spacing-tabbar: 3.25rem;
+}
+
+/* ---------------------------------------------------------------------------
+ * Mode sombre
+ *
+ * Pas une inversion : les surfaces MONTENT vers la lumiere au lieu de
+ * descendre, et l'accent s'eclaircit (ink-600 -> ink-400) pour tenir le
+ * contraste sur fond sombre.
+ *
+ * Ce bloc est hors @layer : il l'emporte donc sur les variables emises par
+ * @theme dans `@layer theme`, sans avoir a jouer sur la specificite.
+ * ------------------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+    :root {
+        /* Fond quasi noir et cartes posees dessus : c'est le « grouped » sombre
+         * d'iOS (fond #000, carte #1C1C1E). La surface est calee sur ce
+         * #1C1C1E, sinon les cartes se confondent avec le fond. */
+        --color-bg: oklch(0.108 0.008 258);
+        --color-surface: oklch(0.235 0.01 258);
+        --color-surface-2: oklch(0.285 0.011 258);
+        --color-hairline: oklch(0.375 0.012 258 / 0.7);
+        --color-edge: oklch(0.335 0.012 258);
+        --color-fg: oklch(0.967 0.003 258);
+        --color-fg-2: oklch(0.712 0.011 258);
+        --color-fg-3: oklch(0.565 0.013 258);
+        --color-accent: oklch(0.672 0.132 258);
+        --color-accent-bg: oklch(0.302 0.088 258 / 0.35);
+        /* Texte SOMBRE sur l'accent clair : blanc sur ink-400 ne donne que
+         * 3:1, sous le seuil AA. Sur fond sombre, iOS fait de meme. */
+        --color-on-accent: oklch(0.108 0.008 258);
+        --color-chrome: oklch(0.108 0.008 258 / 0.82);
+
+        --color-late-fg: oklch(0.712 0.17 27);
+        --color-late-bg: oklch(0.32 0.09 27 / 0.45);
+        --color-soon-fg: oklch(0.78 0.13 75);
+        --color-soon-bg: oklch(0.33 0.08 70 / 0.4);
+        --color-done-fg: oklch(0.74 0.12 158);
+        --color-done-bg: oklch(0.3 0.07 158 / 0.4);
+    }
+}
+
+/* Le blade pose un fond en dur avant l'arrivee du bundle (anti-flash). Cette
+ * regle est hors @layer, donc elle l'emporte des que la feuille est chargee :
+ * le fond suit ensuite les jetons, et non une valeur figee dans la vue. */
+html,
+body {
+    background-color: var(--color-bg);
 }
 
 /* ---------------------------------------------------------------------------
@@ -73,17 +173,13 @@
         /* Coupe le pull-to-refresh et le rubber-band du body. Le scroll reel
          * se fait dans .scroller. */
         overscroll-behavior-y: none;
-        background-color: #fafafa;
-        color: #171717;
+        background-color: var(--color-bg);
+        color: var(--color-fg);
         font-family: var(--font-sans);
+        /* Corps a 17px : la valeur iOS. Le reste de l'echelle en decoule. */
+        font-size: 1.0625rem;
+        line-height: 1.375rem;
         -webkit-font-smoothing: antialiased;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        body {
-            background-color: #0a0a0a;
-            color: #f5f5f5;
-        }
     }
 
     #app {
@@ -132,6 +228,23 @@
         padding-right: var(--safe-r);
     }
 
+    /* Barre de navigation translucide. Elle est collante en tete du scroller :
+     * le contenu passe dessous en defilant. La safe-area haute est deja prise
+     * par .app-shell, d'ou l'absence de padding-top ici.
+     *
+     * C'est elle qui porte le retour arriere — absent jusqu'ici des ecrans de
+     * detail, ou l'on ne pouvait ressortir que par les onglets. */
+    .nav-bar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        margin-inline: -1rem;
+        padding-inline: 1rem;
+        background-color: var(--color-chrome);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+    }
+
     /* Zone scrollable. Le momentum est natif depuis iOS 13 :
      * -webkit-overflow-scrolling est obsolete. */
     .scroller {
@@ -158,6 +271,17 @@
         min-height: 44px;
     }
 
+    /* Retour tactile : l'element s'enfonce legerement sous le doigt. */
+    .pressable {
+        transition:
+            transform 140ms var(--ease-ios),
+            background-color 140ms var(--ease-ios);
+    }
+
+    .pressable:active {
+        transform: scale(0.97);
+    }
+
     /* Surface de scan : pas de menu contextuel a l'appui long, pas de selection,
      * et on gere nous-memes le drag des 4 coins. */
     .scan-surface {
@@ -175,6 +299,85 @@
     }
 }
 
+/* ---------------------------------------------------------------------------
+ * Mouvement
+ *
+ * Quatre usages, pas un de plus : apparition de liste, atterrissage d'un champ
+ * analyse, balayage de la page en cours de lecture, pulsation d'un traitement.
+ * ------------------------------------------------------------------------- */
+@keyframes papers-rise {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes papers-land {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes papers-sweep {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes papers-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.25;
+    }
+}
+
+@layer components {
+    /* Apparition d'une liste : decalage de 24 ms par element, plafonne a 8.
+     * Au-dela, l'attente cumulee se verrait plus que l'effet. */
+    .rise {
+        animation: papers-rise 320ms var(--ease-ios) both;
+        animation-delay: calc(var(--i, 0) * 24ms);
+    }
+
+    .land {
+        animation: papers-land 360ms var(--ease-ios) both;
+    }
+
+    /* Balayage lumineux sur la page en cours d'analyse. */
+    .sweep::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(
+            105deg,
+            transparent 38%,
+            oklch(0.573 0.167 258 / 0.16) 50%,
+            transparent 62%
+        );
+        animation: papers-sweep 2.2s var(--ease-ios) infinite;
+    }
+
+    .pulse-dot {
+        animation: papers-pulse 1.4s var(--ease-ios) infinite;
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *,
     ::view-transition-group(*),
@@ -183,5 +386,14 @@
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+    }
+
+    /* Un balayage infini reduit a 0.01ms clignoterait : on le retire. */
+    .sweep::after {
+        display: none;
+    }
+
+    .pressable:active {
+        transform: none;
     }
 }

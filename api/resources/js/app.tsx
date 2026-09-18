@@ -39,6 +39,11 @@ const router = createBrowserRouter([
                 children: [
                     { index: true, element: screen('Documents', 'Documents') },
                     { path: 'documents/:document', element: screen('DocumentDetail', 'Document') },
+                    { path: 'categories/:slug', element: screen('CategoryDocuments', 'Categorie') },
+                    // Statique AVANT dynamique : sans cela « groups » serait lu
+                    // comme une cle de personne.
+                    { path: 'people/groups', element: screen('PeopleGroups', 'Regroupements') },
+                    { path: 'people/:person', element: screen('PersonDocuments', 'Personne') },
                     { path: 'scan', element: screen('Scanner', 'Scanner') },
                     { path: 'todos', element: screen('Todos', 'Taches') },
                     { path: 'settings', element: screen('Settings', 'Reglages') },
@@ -100,7 +105,21 @@ if (!container) {
     throw new Error('Element #app introuvable : verifiez resources/views/app.blade.php.');
 }
 
-createRoot(container).render(
+/**
+ * La racine est memorisee sur le conteneur.
+ *
+ * En dev, React Refresh re-execute ce module a chaque modification. Sans ce
+ * garde, `createRoot` serait appele une seconde fois sur le meme `#app` : deux
+ * racines se disputent alors les memes noeuds et le rendu casse sur un
+ * « removeChild : the node to be removed is not a child of this node ».
+ * En production le module n'est evalue qu'une fois et le garde ne coute rien.
+ */
+type RootContainer = HTMLElement & { _papersRoot?: ReturnType<typeof createRoot> };
+
+const host = container as RootContainer;
+host._papersRoot ??= createRoot(host);
+
+host._papersRoot.render(
     <StrictMode>
         <Root />
     </StrictMode>,

@@ -5,7 +5,7 @@ function BootSplash() {
     return (
         <div className="app-shell items-center justify-center" aria-busy="true">
             <span className="sr-only">Chargement de Papers</span>
-            <span className="size-7 animate-spin rounded-full border-2 border-neutral-300 border-t-brand-600 dark:border-neutral-700 dark:border-t-brand-400" />
+            <span className="size-7 animate-spin rounded-full border-2 border-edge border-t-accent" />
         </div>
     );
 }

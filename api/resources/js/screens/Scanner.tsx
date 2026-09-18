@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
-import { api } from '../lib/api';
+import { api, ApiError } from '../lib/api';
 import { enqueueDocumentUpload } from '../lib/queue';
 import { CornerEditor } from '../scanner/CornerEditor';
 import { detect, disposeScanner, onLoadStage, warp, type LoadStage } from '../scanner/client';
 import { BLUR_THRESHOLD, type PreviewMode, type Quad } from '../scanner/types';
+
+import { NavBar } from '../components/ui/NavBar';
+import { Button, EmptyState, ErrorNote, Group } from '../components/ui/Layout';
 
 interface ScannedPage {
     id: string;
@@ -203,9 +206,37 @@ export default function Scanner() {
             setTitle('');
             navigate(`/documents/${response.data.id}`, { replace: true });
         } catch (cause) {
-            // Hors ligne ou serveur injoignable : on met en file plutot que de
-            // perdre le scan. iOS n'a pas de Background Sync, la file est
-            // rejouee a la reouverture de l'app.
+            /*
+             | Tous les echecs ne se valent pas.
+             |
+             | Un echec de TRANSPORT (hors ligne, serveur injoignable, 5xx,
+             | delai depasse) merite la file : le scan n'est pas perdu et
+             | repartira a la reouverture de l'app — iOS n'a pas de Background
+             | Sync.
+             |
+             | Un REFUS du serveur (page trop lourde, format rejete, trop de
+             | pages) n'aboutira pas davantage a la tentative suivante. Le
+             | mettre en file fait boucler l'envoi indefiniment, derriere un
+             | message qui promet un depart qui n'arrivera jamais. On montre
+             | alors ce que le serveur reproche, et on GARDE les pages a
+             | l'ecran pour que l'utilisateur puisse en retirer une.
+             */
+            const transient =
+                !(cause instanceof ApiError) ||
+                cause.isOffline ||
+                cause.status >= 500 ||
+                cause.status === 408 ||
+                cause.status === 429;
+
+            if (!transient) {
+                setError(
+                    cause.status === 413
+                        ? 'Le document est trop lourd pour le serveur. Retirez une page, ou reprenez-la de moins pres.'
+                        : cause.message,
+                );
+                return;
+            }
+
             try {
                 await enqueueDocumentUpload({
                     pages: blobs,
@@ -227,35 +258,95 @@ export default function Scanner() {
 
     const blurryCount = pages.filter((page) => page.sharpness < BLUR_THRESHOLD).length;
 
-    return (
-        <div className="flex flex-col gap-5 px-4 pb-8 pt-2">
-            <header>
-                <h1 className="text-xl font-semibold">Scanner</h1>
-                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
-                    Photographiez le document bien a plat. Le cadrage, la perspective et l’eclairage
-                    sont corriges automatiquement.
-                </p>
-            </header>
+    // ------------------------------------------------------------------
+    // Cadrage : plein ecran noir. C'est une visee — la photo et les quatre
+    // poignees doivent dominer, pas un formulaire avec des boutons empiles.
+    // ------------------------------------------------------------------
+    if (shot) {
+        return (
+            <div
+                className="app-chrome fixed inset-0 z-50 flex flex-col bg-black"
+                style={{
+                    paddingTop: 'var(--safe-t)',
+                    paddingBottom: 'calc(var(--safe-b) + 1rem)',
+                }}
+            >
+                <div className="flex min-h-11 items-center justify-between px-4 text-white">
+                    <button
+                        type="button"
+                        onClick={cancelShot}
+                        className="pressable tap-target flex items-center"
+                    >
+                        Annuler
+                    </button>
+                    <span className="text-[0.9375rem] font-semibold text-white/70">
+                        Page {pages.length + 1}
+                    </span>
+                    <span className="w-16" />
+                </div>
 
-            {error && (
-                <p
-                    role="alert"
-                    className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 dark:bg-red-950/50 dark:text-red-300"
-                >
-                    {error}
+                <div className="flex flex-1 items-center justify-center px-4">
+                    <CornerEditor
+                        src={shot.objectUrl}
+                        width={shot.width}
+                        height={shot.height}
+                        quad={shot.quad}
+                        onChange={(quad) => setShot((current) => (current ? { ...current, quad } : current))}
+                    />
+                </div>
+
+                <p className="px-8 pb-4 text-center text-[0.9375rem] leading-[1.3125rem] text-white/80">
+                    {shot.detected
+                        ? 'Document detecte. Faites glisser les coins si le cadrage ne tombe pas juste.'
+                        : 'Aucun contour net detecte : placez vous-meme les quatre coins.'}
                 </p>
-            )}
+
+                {error && (
+                    <p role="alert" className="mx-4 mb-3 rounded-md bg-late-fg px-3.5 py-3 text-white">
+                        {error}
+                    </p>
+                )}
+
+                <div className="flex gap-2.5 px-4">
+                    <button
+                        type="button"
+                        onClick={cancelShot}
+                        className="pressable flex h-13 flex-1 items-center justify-center rounded-md bg-white/15 font-semibold text-white"
+                    >
+                        Reprendre
+                    </button>
+                    <button
+                        type="button"
+                        onClick={confirmShot}
+                        disabled={busy !== null}
+                        className="pressable flex h-13 flex-2 items-center justify-center rounded-md bg-accent font-semibold text-on-accent disabled:opacity-50"
+                    >
+                        {busy ?? 'Valider cette page'}
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="px-4 pb-8">
+            <NavBar
+                title="Scanner"
+                subtitle="Photographiez le document bien a plat. Le cadrage, la perspective et l&rsquo;eclairage sont corriges automatiquement."
+            />
+
+            {error && <ErrorNote>{error}</ErrorNote>}
 
             {stage === 'loading' && (
-                <p className="flex items-center gap-2 rounded-lg bg-neutral-100 px-3 py-2 text-sm text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400">
-                    <span className="size-4 animate-spin rounded-full border-2 border-neutral-400 border-t-transparent" />
-                    Chargement du moteur de traitement d’image (une seule fois)…
+                <p className="mb-3 flex items-center gap-2.5 rounded-md bg-surface-2 px-3.5 py-3 text-[0.9375rem] text-fg-2">
+                    <span className="size-4 shrink-0 animate-spin rounded-full border-2 border-edge border-t-accent" />
+                    Chargement du moteur de traitement d&rsquo;image (une seule fois)&hellip;
                 </p>
             )}
 
             {/* accept explicite : NE JAMAIS inclure image/heic, Safari 17+ renverrait
-                alors du HEIC. capture=environment ouvre l’appareil photo natif, qui
-                donne l’autofocus, le flash et la pleine resolution capteur. */}
+                alors du HEIC. capture=environment ouvre l&rsquo;appareil photo natif, qui
+                donne l&rsquo;autofocus, le flash et la pleine resolution capteur. */}
             <input
                 ref={inputRef}
                 type="file"
@@ -265,168 +356,183 @@ export default function Scanner() {
                 onChange={onPick}
             />
 
-            {shot ? (
-                <section className="flex flex-col gap-3">
-                    <p className="text-sm text-neutral-600 dark:text-neutral-400">
-                        {shot.detected
-                            ? 'Document detecte. Ajustez les coins si besoin.'
-                            : 'Aucun contour net detecte : placez vous-meme les quatre coins.'}
-                    </p>
+            <Button onClick={() => inputRef.current?.click()} disabled={busy !== null}>
+                {busy ?? (pages.length === 0 ? 'Photographier le document' : 'Ajouter une page')}
+            </Button>
 
-                    <CornerEditor
-                        src={shot.objectUrl}
-                        width={shot.width}
-                        height={shot.height}
-                        quad={shot.quad}
-                        onChange={(quad) => setShot((current) => (current ? { ...current, quad } : current))}
-                    />
-
-                    <div className="flex gap-2">
-                        <button
-                            type="button"
-                            onClick={cancelShot}
-                            className="flex-1 rounded-xl border border-neutral-300 px-4 py-3 text-sm font-medium dark:border-neutral-700"
+            {pages.length === 0 && (
+                <EmptyState
+                    icon={
+                        <svg
+                            viewBox="0 0 24 24"
+                            className="size-13"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={1.3}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            aria-hidden="true"
                         >
-                            Reprendre
-                        </button>
-                        <button
-                            type="button"
-                            onClick={confirmShot}
-                            disabled={busy !== null}
-                            className="flex-[2] rounded-xl bg-sky-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
-                        >
-                            {busy ?? 'Valider cette page'}
-                        </button>
-                    </div>
-                </section>
-            ) : (
-                <button
-                    type="button"
-                    onClick={() => inputRef.current?.click()}
-                    disabled={busy !== null}
-                    className="rounded-xl bg-sky-600 px-4 py-4 text-base font-semibold text-white disabled:opacity-50"
+                            <path d="M3 8V5.5A1.5 1.5 0 0 1 4.5 4H7" />
+                            <path d="M21 8V5.5A1.5 1.5 0 0 0 19.5 4H17" />
+                            <path d="M3 16v2.5A1.5 1.5 0 0 0 4.5 20H7" />
+                            <path d="M21 16v2.5a1.5 1.5 0 0 1-1.5 1.5H17" />
+                            <circle cx="12" cy="12" r="3.25" />
+                        </svg>
+                    }
+                    title="Une page a la fois"
                 >
-                    {busy ?? (pages.length === 0 ? 'Photographier le document' : 'Ajouter une page')}
-                </button>
+                    Chaque photo devient une page. Vous pourrez les reordonner avant l&rsquo;envoi.
+                </EmptyState>
             )}
 
             {pages.length > 0 && (
-                <section className="flex flex-col gap-3">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-sm font-semibold">
+                <section className="mt-5">
+                    <div className="mb-2 flex items-baseline justify-between px-0.5">
+                        <h2 className="font-semibold">
                             {pages.length} page{pages.length > 1 ? 's' : ''}
                         </h2>
-                        <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                        <span className="text-[0.8125rem] text-fg-3">
                             {(totalBytes / 1024 / 1024).toFixed(1)} Mo
                         </span>
                     </div>
 
                     {blurryCount > 0 && (
-                        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-                            {blurryCount === 1 ? 'Une page semble floue' : `${blurryCount} pages semblent floues`}.
-                            Le texte risque d’etre mal lu : reprenez-la si possible.
+                        <p className="mb-2.5 rounded-md bg-soon-bg px-3.5 py-3 text-[0.9375rem] text-soon-fg">
+                            {blurryCount === 1
+                                ? 'Une page semble floue'
+                                : `${blurryCount} pages semblent floues`}
+                            . Le texte risque d&rsquo;etre mal lu : reprenez-la si possible.
                         </p>
                     )}
 
-                    <ul className="flex flex-col gap-2">
+                    <Group>
                         {pages.map((page, index) => (
-                            <li
-                                key={page.id}
-                                className="flex items-center gap-3 rounded-xl border border-neutral-200 p-2 dark:border-neutral-800"
-                            >
+                            <div key={page.id} className="flex items-center gap-3.5 px-3.5 py-3">
                                 <img
                                     src={page.previewUrl}
                                     alt={`Page ${index + 1}`}
-                                    className="h-20 w-16 rounded-lg object-cover"
+                                    className="h-[3.5625rem] w-11 shrink-0 rounded-[0.4375rem] object-cover"
                                 />
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium">Page {index + 1}</p>
-                                    <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                                        {page.width}×{page.height}
+                                    <p className="font-medium">Page {index + 1}</p>
+                                    <p className="text-[0.8125rem] text-fg-3">
+                                        {page.width}&times;{page.height}
                                         {page.sharpness < BLUR_THRESHOLD ? ' · floue' : ''}
                                     </p>
                                 </div>
-                                <div className="flex shrink-0 items-center gap-1">
+                                <div className="flex shrink-0 items-center">
                                     <button
                                         type="button"
                                         aria-label={`Monter la page ${index + 1}`}
                                         onClick={() => movePage(index, -1)}
                                         disabled={index === 0}
-                                        className="size-9 rounded-lg border border-neutral-300 text-sm disabled:opacity-30 dark:border-neutral-700"
+                                        className="pressable flex size-11 items-center justify-center text-fg-2 disabled:opacity-25"
                                     >
-                                        ↑
+                                        <svg
+                                            viewBox="0 0 20 20"
+                                            className="size-5"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            aria-hidden="true"
+                                        >
+                                            <path d="M10 16V4m0 0L5 9m5-5 5 5" />
+                                        </svg>
                                     </button>
                                     <button
                                         type="button"
                                         aria-label={`Descendre la page ${index + 1}`}
                                         onClick={() => movePage(index, 1)}
                                         disabled={index === pages.length - 1}
-                                        className="size-9 rounded-lg border border-neutral-300 text-sm disabled:opacity-30 dark:border-neutral-700"
+                                        className="pressable flex size-11 items-center justify-center text-fg-2 disabled:opacity-25"
                                     >
-                                        ↓
+                                        <svg
+                                            viewBox="0 0 20 20"
+                                            className="size-5"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            aria-hidden="true"
+                                        >
+                                            <path d="M10 4v12m0 0 5-5m-5 5-5-5" />
+                                        </svg>
                                     </button>
                                     <button
                                         type="button"
                                         aria-label={`Supprimer la page ${index + 1}`}
                                         onClick={() => removePage(page.id)}
-                                        className="size-9 rounded-lg border border-red-300 text-sm text-red-600 dark:border-red-900 dark:text-red-400"
+                                        className="pressable flex size-11 items-center justify-center text-late-fg"
                                     >
-                                        ×
+                                        <svg
+                                            viewBox="0 0 20 20"
+                                            className="size-5"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                            strokeLinecap="round"
+                                            aria-hidden="true"
+                                        >
+                                            <path d="m5 5 10 10M15 5 5 15" />
+                                        </svg>
                                     </button>
                                 </div>
-                            </li>
+                            </div>
                         ))}
-                    </ul>
+                    </Group>
 
-                    <label className="flex flex-col gap-1 text-sm">
-                        <span className="font-medium">Titre (facultatif)</span>
+                    <label className="mt-4 flex flex-col gap-1.5">
+                        <span className="px-0.5 text-[0.9375rem] font-medium">Titre (facultatif)</span>
                         <input
                             type="text"
                             value={title}
                             onChange={(event) => setTitle(event.target.value)}
-                            placeholder="Laisser vide : le titre sera deduit du contenu"
-                            className="rounded-xl border border-neutral-300 px-3 py-2.5 dark:border-neutral-700 dark:bg-neutral-900"
+                            placeholder="Laisser vide : deduit du contenu"
+                            className="h-13 rounded-md border border-edge bg-surface px-3.5"
                         />
                     </label>
 
-                    <fieldset className="flex gap-2">
-                        <legend className="sr-only">Rendu de l’apercu</legend>
-                        {(
-                            [
-                                ['color', 'Couleur'],
-                                ['gray', 'Gris'],
-                                ['bw', 'Noir et blanc'],
-                            ] as Array<[PreviewMode, string]>
-                        ).map(([mode, label]) => (
-                            <button
-                                key={mode}
-                                type="button"
-                                onClick={() => setPreview(mode)}
-                                className={`flex-1 rounded-lg border px-2 py-2 text-xs ${
-                                    preview === mode
-                                        ? 'border-sky-500 bg-sky-50 font-semibold text-sky-700 dark:bg-sky-950/50 dark:text-sky-300'
-                                        : 'border-neutral-300 dark:border-neutral-700'
-                                }`}
-                            >
-                                {label}
-                            </button>
-                        ))}
+                    <fieldset className="mt-4">
+                        <legend className="sr-only">Rendu de l&rsquo;apercu</legend>
+                        <div className="grid h-11 grid-cols-3 gap-0.5 rounded-[0.5625rem] bg-surface-2 p-0.5">
+                            {(
+                                [
+                                    ['color', 'Couleur'],
+                                    ['gray', 'Gris'],
+                                    ['bw', 'Noir et blanc'],
+                                ] as Array<[PreviewMode, string]>
+                            ).map(([mode, label]) => (
+                                <button
+                                    key={mode}
+                                    type="button"
+                                    onClick={() => setPreview(mode)}
+                                    className={`flex items-center justify-center rounded-[0.4375rem] text-sm transition-colors ${
+                                        preview === mode
+                                            ? 'bg-surface font-semibold text-fg shadow-[0_1px_3px_oklch(0.2_0.01_258/0.13)]'
+                                            : 'font-medium text-fg-2'
+                                    }`}
+                                >
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+                        <p className="mt-2 px-0.5 text-[0.8125rem] leading-[1.125rem] text-fg-3">
+                            L&rsquo;apercu seul change. Le document envoye a l&rsquo;analyse reste en couleur,
+                            pour conserver tampons, surlignages et signatures.
+                        </p>
                     </fieldset>
-                    <p className="-mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                        L’apercu seul change. Le document envoye a l’analyse reste en couleur, pour
-                        conserver tampons, surlignages et signatures.
-                    </p>
 
-                    <button
-                        type="button"
-                        onClick={submit}
-                        disabled={busy !== null}
-                        className="rounded-xl bg-emerald-600 px-4 py-4 text-base font-semibold text-white disabled:opacity-50"
-                    >
-                        {progress !== null
-                            ? `Envoi ${Math.round(progress * 100)} %`
-                            : (busy ?? `Analyser ${pages.length} page${pages.length > 1 ? 's' : ''}`)}
-                    </button>
+                    <div className="mt-5">
+                        <Button onClick={submit} disabled={busy !== null}>
+                            {progress !== null
+                                ? `Envoi ${Math.round(progress * 100)} %`
+                                : (busy ?? `Analyser ${pages.length} page${pages.length > 1 ? 's' : ''}`)}
+                        </Button>
+                    </div>
                 </section>
             )}
         </div>

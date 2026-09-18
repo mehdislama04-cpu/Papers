@@ -8,6 +8,10 @@ import { useOnline, useOutbox, useStandalone } from '../lib/hooks';
 import { clearQueue } from '../lib/queue';
 import type { CalendarAccount } from '../lib/types';
 
+import { NavBar } from '../components/ui/NavBar';
+import { Chevron, Monogram } from '../components/ui/Chips';
+import { Button, Group, SectionTitle } from '../components/ui/Layout';
+
 function Item({
     to,
     title,
@@ -22,26 +26,39 @@ function Item({
     return (
         <Link
             to={to}
-            className="flex items-center justify-between gap-3 rounded-xl border border-neutral-200 p-3 active:bg-neutral-50 dark:border-neutral-800 dark:active:bg-neutral-900"
+            className="pressable flex min-h-14 items-center justify-between gap-3 px-3.5 py-3 active:bg-surface-2"
         >
             <div className="min-w-0">
-                <p className="text-sm font-medium">{title}</p>
+                <p className="font-medium">{title}</p>
                 <p
-                    className={`truncate text-xs ${
+                    className={`truncate text-[0.8125rem] ${
                         tone === 'warning'
-                            ? 'text-amber-700 dark:text-amber-400'
+                            ? 'text-soon-fg'
                             : tone === 'ok'
-                              ? 'text-emerald-700 dark:text-emerald-400'
-                              : 'text-neutral-500 dark:text-neutral-400'
+                              ? 'text-done-fg'
+                              : 'text-fg-3'
                     }`}
                 >
                     {subtitle}
                 </p>
             </div>
-            <span aria-hidden="true" className="shrink-0 text-neutral-400">
-                ›
-            </span>
+            <Chevron />
         </Link>
+    );
+}
+
+function StateRow({ label, value, tone }: { label: string; value: string; tone?: 'ok' | 'warning' }) {
+    return (
+        <div className="flex items-center justify-between gap-4 px-3.5 py-2.5">
+            <dt className="text-[0.9375rem] text-fg-2">{label}</dt>
+            <dd
+                className={`text-[0.9375rem] font-medium ${
+                    tone === 'ok' ? 'text-done-fg' : tone === 'warning' ? 'text-soon-fg' : ''
+                }`}
+            >
+                {value}
+            </dd>
+        </div>
     );
 }
 
@@ -69,19 +86,23 @@ export default function Settings() {
             : 'Connexion en cours de verification';
 
     return (
-        <div className="flex flex-col gap-5 px-4 pb-8 pt-2">
-            <header>
-                <h1 className="text-xl font-semibold">Reglages</h1>
-            </header>
+        <div className="px-4 pb-8">
+            <NavBar title="Reglages" />
 
             {user && (
-                <section className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
-                    <p className="text-sm font-medium">{user.name}</p>
-                    <p className="text-xs text-neutral-500 dark:text-neutral-400">{user.email}</p>
-                </section>
+                <Group className="mb-1">
+                    <div className="flex items-center gap-3.5 px-3.5 py-3.5">
+                        <Monogram name={user.name} self />
+                        <div className="min-w-0">
+                            <p className="truncate font-semibold">{user.name}</p>
+                            <p className="truncate text-[0.8125rem] text-fg-3">{user.email}</p>
+                        </div>
+                    </div>
+                </Group>
             )}
 
-            <section className="flex flex-col gap-2">
+            <SectionTitle>Connexions</SectionTitle>
+            <Group>
                 <Item
                     to="/settings/calendar"
                     title="Calendrier iCloud"
@@ -93,64 +114,60 @@ export default function Settings() {
                     title="Scanner natif Apple"
                     subtitle="Passer par l’app Raccourcis plutot que le scanner integre"
                 />
-            </section>
+            </Group>
 
-            <section className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-900">
-                <h2 className="text-sm font-semibold">Etat</h2>
-                <dl className="mt-1.5 flex flex-col gap-1 text-xs">
-                    <div className="flex justify-between">
-                        <dt className="text-neutral-500 dark:text-neutral-400">Reseau</dt>
-                        <dd className={online ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600'}>
-                            {online ? 'En ligne' : 'Hors ligne'}
-                        </dd>
-                    </div>
-                    <div className="flex justify-between">
-                        <dt className="text-neutral-500 dark:text-neutral-400">Installee sur l’ecran d’accueil</dt>
-                        <dd>{standalone ? 'Oui' : 'Non'}</dd>
-                    </div>
-                    <div className="flex justify-between">
-                        <dt className="text-neutral-500 dark:text-neutral-400">Documents en attente d’envoi</dt>
-                        <dd>{outbox.length}</dd>
-                    </div>
+            <SectionTitle>Etat</SectionTitle>
+            <Group>
+                <dl className="contents">
+                    <StateRow
+                        label="Reseau"
+                        value={online ? 'En ligne' : 'Hors ligne'}
+                        tone={online ? 'ok' : 'warning'}
+                    />
+                    <StateRow
+                        label="Installee sur l’ecran d’accueil"
+                        value={standalone ? 'Oui' : 'Non'}
+                        tone={standalone ? 'ok' : undefined}
+                    />
+                    <StateRow label="Documents en attente d’envoi" value={String(outbox.length)} />
                 </dl>
+            </Group>
 
-                {!standalone && (
-                    <p className="mt-2 text-xs text-neutral-600 dark:text-neutral-400">
-                        Pour installer : bouton Partager de Safari, puis « Sur l’ecran d’accueil ». Sans cela, les
-                        notifications et le retour depuis Raccourcis ne fonctionnent pas.
-                    </p>
-                )}
-            </section>
+            {!standalone && (
+                <p className="mt-2.5 px-1 text-[0.8125rem] leading-[1.125rem] text-fg-2">
+                    Pour installer : bouton Partager de Safari, puis « Sur l’ecran d’accueil ». Sans cela,
+                    les notifications et le retour depuis Raccourcis ne fonctionnent pas.
+                </p>
+            )}
 
-            <section className="flex flex-col gap-2">
-                <button
-                    type="button"
+            <div className="mt-7 flex flex-col gap-2.5">
+                <Button
+                    variant="ghost"
                     onClick={async () => {
                         await clearQueue();
                         setCleared(true);
                     }}
                     disabled={outbox.length === 0}
-                    className="rounded-xl border border-neutral-300 px-4 py-3 text-sm disabled:opacity-40 dark:border-neutral-700"
                 >
                     {cleared ? 'File videe' : `Vider la file d’envoi (${outbox.length})`}
-                </button>
+                </Button>
+
                 {outbox.length > 0 && (
-                    <p className="-mt-1 text-xs text-amber-700 dark:text-amber-400">
-                        Attention : les documents non envoyes seront definitivement perdus.
+                    <p className="-mt-1 px-1 text-[0.8125rem] text-soon-fg">
+                        Les documents non envoyes seront definitivement perdus.
                     </p>
                 )}
 
-                <button
-                    type="button"
+                <Button
+                    variant="danger"
                     onClick={async () => {
                         await logout();
                         void navigate('/login', { replace: true });
                     }}
-                    className="rounded-xl border border-red-300 px-4 py-3 text-sm font-medium text-red-600 dark:border-red-900 dark:text-red-400"
                 >
                     Se deconnecter
-                </button>
-            </section>
+                </Button>
+            </div>
         </div>
     );
 }

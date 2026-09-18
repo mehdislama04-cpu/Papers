@@ -1,0 +1,686 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Papers — Classement par personne et par catégorie</title>
+<style>
+:root {
+  --ink-50:  oklch(0.970 0.013 258);
+  --ink-100: oklch(0.932 0.028 258);
+  --ink-400: oklch(0.672 0.132 258);
+  --ink-500: oklch(0.573 0.167 258);
+  --ink-600: oklch(0.488 0.168 258);
+  --ink-700: oklch(0.416 0.144 258);
+
+  --paper-0:    oklch(1     0     0);
+  --paper-50:   oklch(0.985 0.002 258);
+  --paper-100:  oklch(0.967 0.003 258);
+  --paper-200:  oklch(0.928 0.005 258);
+  --paper-300:  oklch(0.872 0.007 258);
+  --paper-400:  oklch(0.712 0.011 258);
+  --paper-500:  oklch(0.565 0.013 258);
+  --paper-600:  oklch(0.458 0.013 258);
+  --paper-700:  oklch(0.376 0.012 258);
+  --paper-800:  oklch(0.272 0.011 258);
+  --paper-900:  oklch(0.198 0.010 258);
+  --paper-950:  oklch(0.146 0.009 258);
+  --paper-1000: oklch(0.108 0.008 258);
+
+  --late-fg: oklch(0.520 0.195 27);
+  --late-bg: oklch(0.955 0.025 27);
+  --soon-fg: oklch(0.505 0.120 65);
+  --soon-bg: oklch(0.960 0.045 80);
+  --done-fg: oklch(0.492 0.110 158);
+  --done-bg: oklch(0.955 0.035 158);
+
+  /* — Les 12 catégories, réharmonisées : luminosité constante (L ≈ 0.60),
+       chroma contenu, teintes réparties. Les valeurs actuelles en base sont
+       des couleurs Tailwind v3 brutes, de luminosité très inégale. — */
+  --cat-facture:       oklch(0.655 0.170  50);
+  --cat-contrat:       oklch(0.580 0.155 285);
+  --cat-sante:         oklch(0.610 0.175  10);
+  --cat-impots:        oklch(0.600 0.105 212);
+  --cat-banque:        oklch(0.605 0.120 178);
+  --cat-assurance:     oklch(0.585 0.170 305);
+  --cat-administratif: oklch(0.575 0.035 258);
+  --cat-scolaire:      oklch(0.680 0.145  90);
+  --cat-immobilier:    oklch(0.635 0.120 195);
+  --cat-vehicule:      oklch(0.600 0.140 238);
+  --cat-emploi:        oklch(0.605 0.180 325);
+  --cat-autre:         oklch(0.620 0.014 258);
+
+  --r-sm: 10px; --r-md: 16px; --r-lg: 22px;
+  --ease: cubic-bezier(0.32, 0.72, 0, 1);
+
+  --bg: var(--paper-50);
+  --surface: var(--paper-0);
+  --surface-2: var(--paper-100);
+  --border: var(--paper-200);
+  --separator: oklch(0.872 0.007 258 / 0.7);
+  --text: var(--paper-950);
+  --text-2: var(--paper-600);
+  --text-3: var(--paper-500);
+  --accent: var(--ink-600);
+  --accent-bg: var(--ink-50);
+  --chrome: oklch(1 0 0 / 0.82);
+  --shadow-card: 0 1px 2px oklch(0.2 0.01 258 / 0.05);
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, sans-serif;
+}
+.dark {
+  --bg: var(--paper-1000);
+  --surface: oklch(0.168 0.009 258);
+  --surface-2: oklch(0.212 0.010 258);
+  --border: oklch(0.272 0.011 258);
+  --separator: oklch(0.320 0.011 258 / 0.8);
+  --text: oklch(0.967 0.003 258);
+  --text-2: var(--paper-400);
+  --text-3: var(--paper-500);
+  --accent: var(--ink-400);
+  --accent-bg: oklch(0.302 0.088 258 / 0.35);
+  --chrome: oklch(0.108 0.008 258 / 0.82);
+  --shadow-card: none;
+  --late-fg: oklch(0.712 0.170 27);
+  --late-bg: oklch(0.320 0.090 27 / 0.45);
+  --soon-fg: oklch(0.780 0.130 75);
+  --soon-bg: oklch(0.330 0.080 70 / 0.40);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font); background: var(--paper-100); color: var(--paper-950); -webkit-font-smoothing: antialiased; }
+.wrap { max-width: 1400px; margin: 0 auto; padding: 48px 32px 96px; }
+.lede { max-width: 64ch; }
+h1 { font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 8px; }
+h2 { font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.01em; margin: 56px 0 6px; }
+h3 { font-size: 13px; line-height: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--paper-500); margin: 28px 0 12px; }
+p { font-size: 17px; line-height: 26px; color: var(--paper-700); margin: 0 0 14px; }
+.small { font-size: 14px; line-height: 21px; color: var(--paper-600); }
+code { font-family: ui-monospace, monospace; font-size: 0.88em; background: var(--paper-200); padding: 1px 5px; border-radius: 5px; }
+
+.warn { background: #fff; border-left: 3px solid var(--late-fg); border-radius: 0 var(--r-md) var(--r-md) 0; padding: 18px 22px; box-shadow: var(--shadow-card); margin: 18px 0 8px; }
+.warn h4 { margin: 0 0 8px; font-size: 17px; }
+.warn p { margin: 0; font-size: 15px; line-height: 23px; }
+
+.collide { display: flex; gap: 28px; flex-wrap: wrap; margin: 18px 0 0; }
+.collide > div { background: #fff; border-radius: var(--r-md); padding: 18px 20px; box-shadow: var(--shadow-card); }
+.collide h5 { margin: 0 0 12px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--paper-500); }
+.demo-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+
+.catgrid-doc { display: grid; grid-template-columns: repeat(auto-fill, minmax(215px, 1fr)); gap: 9px; }
+.catrow { display: flex; align-items: center; gap: 11px; background: #fff; border-radius: var(--r-sm); padding: 9px 12px; box-shadow: var(--shadow-card); }
+.catrow b { font-size: 15px; font-weight: 600; }
+.catrow code { margin-left: auto; font-size: 10.5px; background: none; color: var(--paper-500); }
+.was { display: inline-block; width: 15px; height: 15px; border-radius: 4px; margin-left: 6px; vertical-align: -2px; }
+
+/* — La pastille de catégorie : carré arrondi. C'est la forme qui porte le sens. — */
+.chip { width: 30px; height: 30px; border-radius: 9px; display: inline-flex; align-items: center; justify-content: center; color: #fff; flex: none; }
+.chip svg { width: 17px; height: 17px; }
+.chip.lg { width: 46px; height: 46px; border-radius: 14px; }
+.chip.lg svg { width: 25px; height: 25px; }
+
+.screens { display: flex; gap: 28px; flex-wrap: wrap; align-items: flex-start; }
+.screen-caption { font-size: 13px; font-weight: 600; color: var(--paper-600); margin: 0 0 10px; }
+
+.phone {
+  width: 428px; height: 926px; border-radius: 46px;
+  background: var(--bg); color: var(--text);
+  position: relative; overflow: hidden;
+  box-shadow: 0 0 0 10px oklch(0.25 0.008 258), 0 24px 60px -20px oklch(0.2 0.01 258 / 0.5);
+  font-family: var(--font); display: flex; flex-direction: column;
+  --safe-t: 47px; --safe-b: 34px;
+}
+.notch { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 162px; height: 33px; background: #000; border-radius: 0 0 20px 20px; z-index: 60; }
+.statusbar { position: absolute; top: 0; left: 0; right: 0; height: var(--safe-t); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; font-size: 15px; font-weight: 600; z-index: 55; }
+.si { display: inline-flex; align-items: center; gap: 5px; }
+.homebar { position: absolute; bottom: 9px; left: 50%; transform: translateX(-50%); width: 148px; height: 5px; border-radius: 3px; background: var(--text); opacity: .3; z-index: 60; }
+
+.nav { padding: calc(var(--safe-t) + 4px) 16px 0; background: var(--chrome); backdrop-filter: blur(20px); flex-shrink: 0; }
+.nav-row { display: flex; align-items: center; justify-content: space-between; min-height: 44px; gap: 12px; }
+.nav h1 { font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: -0.022em; margin: 2px 0 10px; }
+.nav-back { display: flex; align-items: center; gap: 4px; color: var(--accent); font-size: 17px; }
+.nav-action { color: var(--accent); font-size: 17px; font-weight: 500; }
+
+/* — Segmented control iOS : 3 onglets, 36 px de haut, conteneur de 44 — */
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--surface-2); border-radius: 9px; padding: 2px; height: 36px; margin-bottom: 14px; }
+.seg span { display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 500; border-radius: 7px; color: var(--text-2); }
+.seg span.on { background: var(--surface); color: var(--text); font-weight: 600; box-shadow: 0 1px 3px oklch(0.2 0.01 258 / 0.13); }
+
+.body { flex: 1; min-height: 0; overflow: hidden; padding: 0 16px; }
+.tabbar { position: absolute; bottom: 0; left: 0; right: 0; z-index: 50; padding-bottom: var(--safe-b); background: var(--chrome); backdrop-filter: blur(20px); border-top: 1px solid var(--separator); display: grid; grid-template-columns: repeat(4, 1fr); }
+.tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 52px; color: var(--text-3); font-size: 10px; font-weight: 500; }
+.tab.on { color: var(--accent); }
+.tab svg { width: 26px; height: 26px; }
+
+.search { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; border-radius: var(--r-sm); background: var(--surface-2); color: var(--text-3); font-size: 17px; margin-bottom: 12px; }
+
+/* — Grille de catégories : 2 colonnes, tuiles de 44+ — */
+.cats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cat { background: var(--surface); border-radius: var(--r-md); box-shadow: var(--shadow-card); padding: 13px 14px; display: flex; flex-direction: column; gap: 9px; min-height: 92px; }
+.cat-name { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+.cat-count { font-size: 13px; color: var(--text-3); margin: 0; }
+.cat-top { display: flex; align-items: flex-start; justify-content: space-between; }
+.cat-flag { font-size: 11px; font-weight: 700; padding: 3px 7px; border-radius: 999px; background: var(--late-bg); color: var(--late-fg); }
+
+/* — Personne — */
+.person { display: flex; align-items: center; gap: 13px; padding: 12px 14px; border-bottom: 1px solid var(--separator); }
+.person:last-child { border-bottom: 0; }
+.mono { width: 46px; height: 46px; border-radius: 50%; flex: none; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 600; letter-spacing: 0.01em; background: var(--accent-bg); color: var(--accent); }
+.mono.self { background: var(--accent); color: #fff; }
+.person-main { min-width: 0; flex: 1; }
+.person-name { font-size: 17px; line-height: 22px; font-weight: 600; margin: 0 0 2px; display: flex; align-items: center; gap: 7px; }
+.person-name .self-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); background: var(--accent-bg); padding: 2px 6px; border-radius: 5px; }
+.person-sub { font-size: 14px; line-height: 19px; color: var(--text-3); margin: 0; display: flex; align-items: center; gap: 6px; }
+.dots { display: inline-flex; gap: 3px; }
+.dots i { width: 8px; height: 8px; border-radius: 3px; display: block; }
+.chev { color: var(--paper-400); flex: none; }
+
+.group { background: var(--surface); border-radius: var(--r-md); box-shadow: var(--shadow-card); overflow: hidden; }
+.sec-title { font-size: 13px; line-height: 18px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); margin: 22px 0 8px 2px; }
+
+/* — Carte document compacte — */
+.doc { display: flex; gap: 13px; padding: 11px 14px; align-items: center; border-bottom: 1px solid var(--separator); }
+.doc:last-child { border-bottom: 0; }
+.thumb { width: 44px; height: 57px; border-radius: 7px; flex: none; background: #fff; box-shadow: 0 0 0 1px var(--border); overflow: hidden; position: relative; }
+.thumb .lines { position: absolute; inset: 8px 6px; display: flex; flex-direction: column; gap: 3px; }
+.thumb .lines i { display: block; height: 2.5px; border-radius: 2px; background: var(--paper-300); }
+.thumb .lines i:first-child { width: 68%; height: 4px; background: var(--paper-400); margin-bottom: 2px; }
+.thumb .lines i:nth-child(4) { width: 52%; }
+.doc-main { min-width: 0; flex: 1; }
+.doc-title { font-size: 16px; line-height: 21px; font-weight: 600; margin: 0 0 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc-sub { font-size: 14px; line-height: 19px; color: var(--text-2); margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tag { font-size: 12px; line-height: 16px; font-weight: 600; padding: 3px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); }
+.tag.late { background: var(--late-bg); color: var(--late-fg); }
+.tag.soon { background: var(--soon-bg); color: var(--soon-fg); }
+
+/* — En-tête de personne / catégorie — */
+.hero { display: flex; flex-direction: column; align-items: center; gap: 9px; padding: 4px 0 18px; }
+.hero .mono { width: 76px; height: 76px; font-size: 27px; }
+.hero h2 { font-size: 26px; line-height: 32px; font-weight: 700; letter-spacing: -0.02em; margin: 0; color: var(--text); }
+.hero p { font-size: 15px; color: var(--text-3); margin: 0; }
+.bar { display: flex; height: 9px; border-radius: 5px; overflow: hidden; margin: 2px 0 6px; }
+.bar i { display: block; height: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 5px 12px; justify-content: center; }
+.legend span { font-size: 12px; color: var(--text-2); display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 9px; height: 9px; border-radius: 3px; display: block; }
+
+/* — Rattachement des destinataires — */
+.merge { background: var(--surface); border-radius: var(--r-md); box-shadow: var(--shadow-card); margin-bottom: 10px; overflow: hidden; }
+.merge-head { display: flex; align-items: center; gap: 12px; padding: 12px 14px; }
+.merge-head .mono { width: 40px; height: 40px; font-size: 15px; }
+.merge-title { font-size: 17px; font-weight: 600; margin: 0; }
+.merge-sub { font-size: 13px; color: var(--text-3); margin: 1px 0 0; }
+.variants { border-top: 1px solid var(--separator); padding: 4px 0; }
+.variant { display: flex; align-items: center; gap: 10px; padding: 8px 14px 8px 16px; font-size: 15px; color: var(--text-2); }
+.variant .tick { width: 22px; height: 22px; border-radius: 50%; background: var(--done-bg); color: var(--done-fg); display: flex; align-items: center; justify-content: center; font-size: 13px; flex: none; }
+.variant em { font-style: normal; color: var(--text-3); font-size: 13px; margin-left: auto; }
+.merge-actions { display: flex; border-top: 1px solid var(--separator); }
+.merge-actions span { flex: 1; text-align: center; padding: 13px 0; font-size: 16px; font-weight: 500; color: var(--accent); }
+.merge-actions span + span { border-left: 1px solid var(--separator); }
+.merge-actions span.sep { color: var(--text-2); }
+
+.btn { display: flex; align-items: center; justify-content: center; height: 52px; border-radius: var(--r-md); background: var(--accent); color: #fff; font-size: 17px; font-weight: 600; }
+
+.hint { font-size: 14px; line-height: 20px; color: var(--text-3); text-align: center; padding: 0 10px; margin: 12px 0 0; }
+
+table { border-collapse: collapse; width: 100%; background: #fff; border-radius: var(--r-md); overflow: hidden; box-shadow: var(--shadow-card); }
+th, td { text-align: left; padding: 13px 18px; font-size: 15px; line-height: 22px; border-bottom: 1px solid var(--paper-200); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--paper-500); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+td:first-child { font-weight: 600; white-space: nowrap; }
+.ok { color: var(--done-fg); font-weight: 600; }
+.todo-b { color: var(--late-fg); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="lede">
+  <h1>Classer par personne et par catégorie</h1>
+  <p>Deux entrées nouvelles dans Documents. L'une existe déjà presque entièrement côté serveur et n'attend que d'être montrée ; l'autre demande une vraie brique de données. Le design ci-dessous traite les deux, et règle au passage une collision que l'ajout des catégories allait provoquer.</p>
+</div>
+
+<h2>D'abord, un conflit à désamorcer</h2>
+
+<div class="warn">
+  <h4>Les couleurs de catégorie écrasent les couleurs d'alerte</h4>
+  <p>Les 12 catégories portent déjà une couleur en base. Trois tombent exactement sur les couleurs d'état de la direction visuelle : <b>Santé est le rouge du retard</b>, <b>Banque le vert du « fait »</b>, <b>Scolaire l'ambre de l'échéance proche</b>. Afficher une étiquette rouge « Santé » à côté d'une étiquette rouge « en retard », c'est rendre l'urgence illisible.</p>
+</div>
+
+<h3>La règle : c'est la forme qui porte le registre</h3>
+<div class="collide">
+  <div>
+    <h5>Catégorie — pastille carrée, toujours</h5>
+    <div class="demo-row"><span class="chip" style="background:var(--cat-sante)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 6.6a5 5 0 0 0-8.8-1.9 5 5 0 0 0-8.8 1.9c-.6 2.4.8 4.4 2.3 5.9L12 19l6.5-6.5c1.5-1.5 2.9-3.5 2.3-5.9Z"/></svg></span><span style="font-size:15px;font-weight:600">Santé</span></div>
+    <div class="demo-row"><span class="chip" style="background:var(--cat-banque)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span><span style="font-size:15px;font-weight:600">Banque</span></div>
+    <div class="demo-row"><span class="chip" style="background:var(--cat-scolaire)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11.5V16c0 1.3 2.7 2.5 6 2.5s6-1.2 6-2.5v-4.5"/></svg></span><span style="font-size:15px;font-weight:600">Scolaire</span></div>
+  </div>
+  <div>
+    <h5>État — pilule, toujours</h5>
+    <div class="demo-row"><span class="tag late">En retard</span></div>
+    <div class="demo-row"><span class="tag soon">Échéance dans 6 j</span></div>
+    <div class="demo-row"><span class="tag" style="background:var(--done-bg);color:var(--done-fg)">Classé</span></div>
+  </div>
+  <div>
+    <h5>Ensemble — aucune confusion</h5>
+    <div class="demo-row"><span class="chip" style="background:var(--cat-sante)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 6.6a5 5 0 0 0-8.8-1.9 5 5 0 0 0-8.8 1.9c-.6 2.4.8 4.4 2.3 5.9L12 19l6.5-6.5c1.5-1.5 2.9-3.5 2.3-5.9Z"/></svg></span><span style="font-size:15px">Ordonnance</span><span class="tag late">En retard</span></div>
+    <div class="demo-row"><span class="chip" style="background:var(--cat-facture)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v18l2.5-1.6L9 21l2.5-1.6L14 21l2.5-1.6L19 21V3l-2.5 1.6L14 3l-2.5 1.6L9 3 6.5 4.6 4 3Z"/><path d="M8 9h8M8 13h5"/></svg></span><span style="font-size:15px">Facture EDF</span><span class="tag soon">Dans 6 j</span></div>
+  </div>
+</div>
+
+<h3>Les 12 couleurs, réharmonisées</h3>
+<p class="small">Les valeurs en base sont des couleurs Tailwind v3 brutes : leur luminosité va de 0,55 à 0,78, donc certaines pastilles crient et d'autres s'effacent. Je les réécris à luminosité constante (L ≈ 0,60) et chroma contenu. Santé, Banque et Scolaire sont en plus décalées en teinte pour s'éloigner des trois couleurs d'état. Le petit carré à droite du nom rappelle la valeur actuelle.</p>
+
+<div class="catgrid-doc">
+  <div class="catrow"><span class="chip" style="background:var(--cat-facture)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v18l2.5-1.6L9 21l2.5-1.6L14 21l2.5-1.6L19 21V3l-2.5 1.6L14 3l-2.5 1.6L9 3 6.5 4.6 4 3Z"/><path d="M8 9h8M8 13h5"/></svg></span><b>Facture<i class="was" style="background:#F97316"></i></b><code>0.655 0.170 50</code></div>
+  <div class="catrow"><span class="chip" style="background:var(--cat-contrat)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h5"/><path d="M14 3v5h5V8"/><path d="m14.5 19.5 5-5a1.6 1.6 0 0 1 2.3 2.3l-5 5-3 .7.7-3Z"/></svg></span><b>Contrat<i class="was" style="background:#6366F1"></i></b><code>0.580 0.155 285</code></div>
+  <div class="catrow"><span class="chip" style="background:var(--cat-sante)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 6.6a5 5 0 0 0-8.8-1.9 5 5 0 0 0-8.8 1.9c-.6 2.4.8 4.4 2.3 5.9L12 19l6.5-6.5c1.5-1.5 2.9-3.5 2.3-5.9Z"/></svg></span><b>Santé<i class="was" style="background:#EF4444"></i></b><code>0.610 0.175 10</code></div>
+  <div class="catrow"><span class="chip" style="background:var(--cat-impots)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18L12 4 3 10Z"/><path d="M5 10v8M10 10v8M14 10v8M19 10v8"/><path d="M3 20h18"/></svg></span><b>Impôts<i class="was" style="background:#0EA5E9"></i></b><code>0.600 0.105 212</code></div>
+  <div class="catrow"><span class="chip" style="background:var(--cat-banque)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span><b>Banque<i class="was" style="background:#10B981"></i></b><code>0.605 0.120 178</code></div>
+  <div class="catrow"><span class="chip" style="background:var(--cat-assurance)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg></span><b>Assurance<i class="was" style="background:#8B5CF6"></i></b><code>0.585 0.170 305</code></div>
+  <div class="catrow"><span class="chip" style="background:var(--cat-administratif)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M8 7h3M8 11h3M8 15h3M14 7h2M14 11h2M14 15h2"/></svg></span><b>Administratif<i class="was" style="background:#64748B"></i></b><code>0.575 0.035 258</code></div>
+  <div class="catrow"><span class="chip" style="background:var(--cat-scolaire)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11.5V16c0 1.3 2.7 2.5 6 2.5s6-1.2 6-2.5v-4.5"/></svg></span><b>Scolaire<i class="was" style="background:#F59E0B"></i></b><code>0.680 0.145 90</code></div>
+  <div class="catrow"><span class="chip" style="background:var(--cat-immobilier)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M10 20v-6h4v6"/></svg></span><b>Immobilier<i class="was" style="background:#14B8A6"></i></b><code>0.635 0.120 195</code></div>
+  <div class="catrow"><span class="chip" style="background:var(--cat-vehicule)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14v-4l-1.8-4.2A2 2 0 0 0 15.4 7.5H8.6a2 2 0 0 0-1.8 1.3L5 13v4Z"/><circle cx="8" cy="17" r="1.6"/><circle cx="16" cy="17" r="1.6"/></svg></span><b>Véhicule<i class="was" style="background:#3B82F6"></i></b><code>0.600 0.140 238</code></div>
+  <div class="catrow"><span class="chip" style="background:var(--cat-emploi)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="7" width="19" height="13" rx="2"/><path d="M9 7V5a1.5 1.5 0 0 1 1.5-1.5h3A1.5 1.5 0 0 1 15 5v2"/><path d="M2.5 12.5h19"/></svg></span><b>Emploi<i class="was" style="background:#A855F7"></i></b><code>0.605 0.180 325</code></div>
+  <div class="catrow"><span class="chip" style="background:var(--cat-autre)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4l2 2.5h9A1.5 1.5 0 0 1 21 10v8a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 18V7.5Z"/></svg></span><b>Autre<i class="was" style="background:#9CA3AF"></i></b><code>0.620 0.014 258</code></div>
+</div>
+
+<h2>La navigation : un sélecteur, pas un onglet de plus</h2>
+<p class="small">Les quatre onglets restent. Documents gagne un sélecteur à trois positions en tête d'écran — <b>Tous · Personnes · Catégories</b>. C'est le geste iOS attendu, il ne coûte aucune profondeur de navigation, et « Tous » reste l'affichage par défaut : personne n'est forcé de classer pour se servir de l'app.</p>
+
+<div class="screens">
+
+  <!-- ============ CATÉGORIES ============ -->
+  <div>
+    <p class="screen-caption">Documents · Catégories — les 12 tuiles</p>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span class="si"><svg viewBox="0 0 18 12" width="17" height="11" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="4.5" y="5.5" width="3" height="6.5" rx="1"/><rect x="9" y="3" width="3" height="9" rx="1"/><rect x="13.5" y="0.5" width="3" height="11.5" rx="1"/></svg><svg viewBox="0 0 16 12" width="16" height="11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.2a10 10 0 0 1 14 0"/><path d="M3.6 6.9a6.4 6.4 0 0 1 8.8 0"/><path d="M6.2 9.5a2.8 2.8 0 0 1 3.6 0"/></svg><svg viewBox="0 0 26 12" width="24" height="11" fill="none"><rect x="0.6" y="0.6" width="21" height="10.8" rx="3.2" stroke="currentColor" stroke-opacity=".45" stroke-width="1.1"/><rect x="2.2" y="2.2" width="17.8" height="7.6" rx="2" fill="currentColor"/><path d="M23.2 4.2v3.6a2.4 2.4 0 0 0 0-3.6Z" fill="currentColor" fill-opacity=".45"/></svg></span></div>
+
+      <div class="nav">
+        <div class="nav-row" style="min-height:0"></div>
+        <h1>Documents</h1>
+        <div class="seg"><span>Tous</span><span>Personnes</span><span class="on">Catégories</span></div>
+      </div>
+
+      <div class="body">
+        <div class="cats">
+          <div class="cat">
+            <div class="cat-top"><span class="chip lg" style="background:var(--cat-facture)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 3v18l2.5-1.6L9 21l2.5-1.6L14 21l2.5-1.6L19 21V3l-2.5 1.6L14 3l-2.5 1.6L9 3 6.5 4.6 4 3Z"/><path d="M8 9h8M8 13h5"/></svg></span><span class="cat-flag">2 en retard</span></div>
+            <div><p class="cat-name">Facture</p><p class="cat-count">34 documents</p></div>
+          </div>
+          <div class="cat">
+            <div class="cat-top"><span class="chip lg" style="background:var(--cat-sante)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 6.6a5 5 0 0 0-8.8-1.9 5 5 0 0 0-8.8 1.9c-.6 2.4.8 4.4 2.3 5.9L12 19l6.5-6.5c1.5-1.5 2.9-3.5 2.3-5.9Z"/></svg></span></div>
+            <div><p class="cat-name">Santé</p><p class="cat-count">18 documents</p></div>
+          </div>
+          <div class="cat">
+            <div class="cat-top"><span class="chip lg" style="background:var(--cat-banque)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span></div>
+            <div><p class="cat-name">Banque</p><p class="cat-count">12 documents</p></div>
+          </div>
+          <div class="cat">
+            <div class="cat-top"><span class="chip lg" style="background:var(--cat-assurance)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg></span></div>
+            <div><p class="cat-name">Assurance</p><p class="cat-count">9 documents</p></div>
+          </div>
+          <div class="cat">
+            <div class="cat-top"><span class="chip lg" style="background:var(--cat-impots)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10h18L12 4 3 10Z"/><path d="M5 10v8M10 10v8M14 10v8M19 10v8"/><path d="M3 20h18"/></svg></span><span class="cat-flag" style="background:var(--soon-bg);color:var(--soon-fg)">Mai</span></div>
+            <div><p class="cat-name">Impôts</p><p class="cat-count">7 documents</p></div>
+          </div>
+          <div class="cat">
+            <div class="cat-top"><span class="chip lg" style="background:var(--cat-scolaire)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11.5V16c0 1.3 2.7 2.5 6 2.5s6-1.2 6-2.5v-4.5"/></svg></span></div>
+            <div><p class="cat-name">Scolaire</p><p class="cat-count">6 documents</p></div>
+          </div>
+          <div class="cat">
+            <div class="cat-top"><span class="chip lg" style="background:var(--cat-immobilier)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7"/><path d="M5 9v11h14V9"/><path d="M10 20v-6h4v6"/></svg></span></div>
+            <div><p class="cat-name">Immobilier</p><p class="cat-count">5 documents</p></div>
+          </div>
+          <div class="cat">
+            <div class="cat-top"><span class="chip lg" style="background:var(--cat-vehicule)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17h14v-4l-1.8-4.2A2 2 0 0 0 15.4 7.5H8.6a2 2 0 0 0-1.8 1.3L5 13v4Z"/><circle cx="8" cy="17" r="1.6"/><circle cx="16" cy="17" r="1.6"/></svg></span></div>
+            <div><p class="cat-name">Véhicule</p><p class="cat-count">4 documents</p></div>
+          </div>
+        </div>
+        <p class="hint">Contrat, Emploi, Administratif et Autre suivent. Une catégorie vide reste affichée, en gris : c'est un rangement possible, pas une absence.</p>
+      </div>
+
+      <nav class="tabbar">
+        <span class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h7l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M13 3v5h5"/><path d="M8.5 13h7M8.5 16.5h4.5"/></svg>Documents</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5.5A1.5 1.5 0 0 1 4.5 4H7"/><path d="M21 8V5.5A1.5 1.5 0 0 0 19.5 4H17"/><path d="M3 16v2.5A1.5 1.5 0 0 0 4.5 20H7"/><path d="M21 16v2.5a1.5 1.5 0 0 1-1.5 1.5H17"/><circle cx="12" cy="12" r="3.25"/></svg>Scanner</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m4 7 2 2 3.5-3.5"/><path d="m4 17 2 2 3.5-3.5"/><path d="M13 7.5h7M13 17.5h7"/></svg>Tâches</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 14.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.11a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.11a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.08A1.7 1.7 0 0 0 10.14 3.1V3a2 2 0 1 1 4 0v.11a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.08a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.11a1.7 1.7 0 0 0-1.49 1.03Z"/></svg>Réglages</span>
+      </nav>
+      <div class="homebar"></div>
+    </div>
+  </div>
+
+  <!-- ============ PERSONNES ============ -->
+  <div>
+    <p class="screen-caption">Documents · Personnes</p>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span class="si"><svg viewBox="0 0 18 12" width="17" height="11" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="4.5" y="5.5" width="3" height="6.5" rx="1"/><rect x="9" y="3" width="3" height="9" rx="1"/><rect x="13.5" y="0.5" width="3" height="11.5" rx="1"/></svg><svg viewBox="0 0 16 12" width="16" height="11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.2a10 10 0 0 1 14 0"/><path d="M3.6 6.9a6.4 6.4 0 0 1 8.8 0"/><path d="M6.2 9.5a2.8 2.8 0 0 1 3.6 0"/></svg><svg viewBox="0 0 26 12" width="24" height="11" fill="none"><rect x="0.6" y="0.6" width="21" height="10.8" rx="3.2" stroke="currentColor" stroke-opacity=".45" stroke-width="1.1"/><rect x="2.2" y="2.2" width="17.8" height="7.6" rx="2" fill="currentColor"/><path d="M23.2 4.2v3.6a2.4 2.4 0 0 0 0-3.6Z" fill="currentColor" fill-opacity=".45"/></svg></span></div>
+
+      <div class="nav">
+        <div class="nav-row"><span></span><span class="nav-action">Modifier</span></div>
+        <h1>Documents</h1>
+        <div class="seg"><span>Tous</span><span class="on">Personnes</span><span>Catégories</span></div>
+      </div>
+
+      <div class="body">
+        <div class="group">
+          <div class="person">
+            <span class="mono self">MS</span>
+            <div class="person-main">
+              <p class="person-name">Mehdi Slama <span class="self-tag">Moi</span></p>
+              <p class="person-sub"><span class="dots"><i style="background:var(--cat-facture)"></i><i style="background:var(--cat-banque)"></i><i style="background:var(--cat-impots)"></i></span> 52 documents</p>
+            </div>
+            <span class="chev"><svg viewBox="0 0 8 14" width="8" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m1 1 6 6-6 6"/></svg></span>
+          </div>
+          <div class="person">
+            <span class="mono">LS</span>
+            <div class="person-main">
+              <p class="person-name">Léa Slama</p>
+              <p class="person-sub"><span class="dots"><i style="background:var(--cat-scolaire)"></i><i style="background:var(--cat-sante)"></i></span> 23 documents</p>
+            </div>
+            <span class="chev"><svg viewBox="0 0 8 14" width="8" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m1 1 6 6-6 6"/></svg></span>
+          </div>
+          <div class="person">
+            <span class="mono">NS</span>
+            <div class="person-main">
+              <p class="person-name">Nora Slama</p>
+              <p class="person-sub"><span class="dots"><i style="background:var(--cat-sante)"></i><i style="background:var(--cat-assurance)"></i></span> 11 documents</p>
+            </div>
+            <span class="chev"><svg viewBox="0 0 8 14" width="8" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m1 1 6 6-6 6"/></svg></span>
+          </div>
+          <div class="person">
+            <span class="mono" style="background:var(--surface-2);color:var(--text-3)"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20a7.4 7.4 0 0 1 14.4 0"/></svg></span>
+            <div class="person-main">
+              <p class="person-name" style="color:var(--text-2)">Sans destinataire</p>
+              <p class="person-sub">9 documents</p>
+            </div>
+            <span class="chev"><svg viewBox="0 0 8 14" width="8" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m1 1 6 6-6 6"/></svg></span>
+          </div>
+        </div>
+
+        <p class="sec-title">À rattacher</p>
+        <div class="group">
+          <div class="person">
+            <span class="mono" style="background:var(--soon-bg);color:var(--soon-fg)">3</span>
+            <div class="person-main">
+              <p class="person-name" style="font-size:16px">3 destinataires proches</p>
+              <p class="person-sub">« M. Mehdi Slama », « SLAMA Mehdi »…</p>
+            </div>
+            <span class="chev"><svg viewBox="0 0 8 14" width="8" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m1 1 6 6-6 6"/></svg></span>
+          </div>
+        </div>
+        <p class="hint">Un document imprime le nom comme il veut. Papers rapproche les variantes et vous demande de confirmer — jamais l'inverse.</p>
+      </div>
+
+      <nav class="tabbar">
+        <span class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h7l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M13 3v5h5"/><path d="M8.5 13h7M8.5 16.5h4.5"/></svg>Documents</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5.5A1.5 1.5 0 0 1 4.5 4H7"/><path d="M21 8V5.5A1.5 1.5 0 0 0 19.5 4H17"/><path d="M3 16v2.5A1.5 1.5 0 0 0 4.5 20H7"/><path d="M21 16v2.5a1.5 1.5 0 0 1-1.5 1.5H17"/><circle cx="12" cy="12" r="3.25"/></svg>Scanner</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m4 7 2 2 3.5-3.5"/><path d="m4 17 2 2 3.5-3.5"/><path d="M13 7.5h7M13 17.5h7"/></svg>Tâches</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 14.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.11a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.11a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.08A1.7 1.7 0 0 0 10.14 3.1V3a2 2 0 1 1 4 0v.11a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.08a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.11a1.7 1.7 0 0 0-1.49 1.03Z"/></svg>Réglages</span>
+      </nav>
+      <div class="homebar"></div>
+    </div>
+  </div>
+
+  <!-- ============ FICHE PERSONNE ============ -->
+  <div>
+    <p class="screen-caption">Une personne — ce qu'elle a, et ce qui presse</p>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span class="si"><svg viewBox="0 0 18 12" width="17" height="11" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="4.5" y="5.5" width="3" height="6.5" rx="1"/><rect x="9" y="3" width="3" height="9" rx="1"/><rect x="13.5" y="0.5" width="3" height="11.5" rx="1"/></svg><svg viewBox="0 0 16 12" width="16" height="11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.2a10 10 0 0 1 14 0"/><path d="M3.6 6.9a6.4 6.4 0 0 1 8.8 0"/><path d="M6.2 9.5a2.8 2.8 0 0 1 3.6 0"/></svg><svg viewBox="0 0 26 12" width="24" height="11" fill="none"><rect x="0.6" y="0.6" width="21" height="10.8" rx="3.2" stroke="currentColor" stroke-opacity=".45" stroke-width="1.1"/><rect x="2.2" y="2.2" width="17.8" height="7.6" rx="2" fill="currentColor"/><path d="M23.2 4.2v3.6a2.4 2.4 0 0 0 0-3.6Z" fill="currentColor" fill-opacity=".45"/></svg></span></div>
+
+      <div class="nav">
+        <div class="nav-row">
+          <span class="nav-back"><svg viewBox="0 0 12 20" width="11" height="19" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 2 10l8 8"/></svg>Personnes</span>
+          <span class="nav-action">Modifier</span>
+        </div>
+      </div>
+
+      <div class="body">
+        <div class="hero">
+          <span class="mono">LS</span>
+          <h2>Léa Slama</h2>
+          <p>23 documents · depuis janvier 2024</p>
+        </div>
+
+        <div class="bar">
+          <i style="background:var(--cat-scolaire);width:39%"></i>
+          <i style="background:var(--cat-sante);width:26%"></i>
+          <i style="background:var(--cat-assurance);width:17%"></i>
+          <i style="background:var(--cat-facture);width:11%"></i>
+          <i style="background:var(--cat-autre);width:7%"></i>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--cat-scolaire)"></i>Scolaire 9</span>
+          <span><i style="background:var(--cat-sante)"></i>Santé 6</span>
+          <span><i style="background:var(--cat-assurance)"></i>Assurance 4</span>
+          <span><i style="background:var(--cat-facture)"></i>Facture 3</span>
+          <span><i style="background:var(--cat-autre)"></i>Autre 1</span>
+        </div>
+
+        <p class="sec-title">À traiter</p>
+        <div class="group">
+          <div class="doc">
+            <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div></div>
+            <div class="doc-main">
+              <p class="doc-title">Certificat médical — sport</p>
+              <p class="doc-sub">Dr Lemoine</p>
+            </div>
+            <span class="tag late">En retard</span>
+          </div>
+          <div class="doc">
+            <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div></div>
+            <div class="doc-main">
+              <p class="doc-title">Inscription cantine 2026</p>
+              <p class="doc-sub">Mairie de Montreuil</p>
+            </div>
+            <span class="tag soon">Dans 4 j</span>
+          </div>
+        </div>
+
+        <p class="sec-title">Tous ses documents</p>
+        <div class="group">
+          <div class="doc">
+            <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div></div>
+            <div class="doc-main">
+              <p class="doc-title">Bulletin — 2ᵉ trimestre</p>
+              <p class="doc-sub">Collège Jean Jaurès · 14 mars</p>
+            </div>
+            <span class="chip" style="background:var(--cat-scolaire)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11.5V16c0 1.3 2.7 2.5 6 2.5s6-1.2 6-2.5v-4.5"/></svg></span>
+          </div>
+          <div class="doc">
+            <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div></div>
+            <div class="doc-main">
+              <p class="doc-title">Carnet de vaccination</p>
+              <p class="doc-sub">Cabinet des Lilas · 2 mars</p>
+            </div>
+            <span class="chip" style="background:var(--cat-sante)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 6.6a5 5 0 0 0-8.8-1.9 5 5 0 0 0-8.8 1.9c-.6 2.4.8 4.4 2.3 5.9L12 19l6.5-6.5c1.5-1.5 2.9-3.5 2.3-5.9Z"/></svg></span>
+          </div>
+          <div class="doc">
+            <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div></div>
+            <div class="doc-main">
+              <p class="doc-title">Attestation scolaire</p>
+              <p class="doc-sub">Collège Jean Jaurès · 8 janv.</p>
+            </div>
+            <span class="chip" style="background:var(--cat-scolaire)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 9 12 4 2 9l10 5 10-5Z"/><path d="M6 11.5V16c0 1.3 2.7 2.5 6 2.5s6-1.2 6-2.5v-4.5"/></svg></span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="tabbar">
+        <span class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h7l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M13 3v5h5"/><path d="M8.5 13h7M8.5 16.5h4.5"/></svg>Documents</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5.5A1.5 1.5 0 0 1 4.5 4H7"/><path d="M21 8V5.5A1.5 1.5 0 0 0 19.5 4H17"/><path d="M3 16v2.5A1.5 1.5 0 0 0 4.5 20H7"/><path d="M21 16v2.5a1.5 1.5 0 0 1-1.5 1.5H17"/><circle cx="12" cy="12" r="3.25"/></svg>Scanner</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m4 7 2 2 3.5-3.5"/><path d="m4 17 2 2 3.5-3.5"/><path d="M13 7.5h7M13 17.5h7"/></svg>Tâches</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 14.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.11a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.11a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.08A1.7 1.7 0 0 0 10.14 3.1V3a2 2 0 1 1 4 0v.11a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.08a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.11a1.7 1.7 0 0 0-1.49 1.03Z"/></svg>Réglages</span>
+      </nav>
+      <div class="homebar"></div>
+    </div>
+  </div>
+
+  <!-- ============ RATTACHEMENT ============ -->
+  <div>
+    <p class="screen-caption">Rattacher les destinataires — le geste qui rend le tri fiable</p>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span class="si"><svg viewBox="0 0 18 12" width="17" height="11" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="4.5" y="5.5" width="3" height="6.5" rx="1"/><rect x="9" y="3" width="3" height="9" rx="1"/><rect x="13.5" y="0.5" width="3" height="11.5" rx="1"/></svg><svg viewBox="0 0 16 12" width="16" height="11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.2a10 10 0 0 1 14 0"/><path d="M3.6 6.9a6.4 6.4 0 0 1 8.8 0"/><path d="M6.2 9.5a2.8 2.8 0 0 1 3.6 0"/></svg><svg viewBox="0 0 26 12" width="24" height="11" fill="none"><rect x="0.6" y="0.6" width="21" height="10.8" rx="3.2" stroke="currentColor" stroke-opacity=".45" stroke-width="1.1"/><rect x="2.2" y="2.2" width="17.8" height="7.6" rx="2" fill="currentColor"/><path d="M23.2 4.2v3.6a2.4 2.4 0 0 0 0-3.6Z" fill="currentColor" fill-opacity=".45"/></svg></span></div>
+
+      <div class="nav">
+        <div class="nav-row">
+          <span class="nav-back"><svg viewBox="0 0 12 20" width="11" height="19" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 2 10l8 8"/></svg>Personnes</span>
+        </div>
+        <h1 style="font-size:28px;line-height:34px">Rattacher</h1>
+      </div>
+
+      <div class="body">
+        <p style="font-size:15px;line-height:21px;color:var(--text-2);margin:0 2px 16px">
+          Ces noms semblent désigner la même personne. Vérifiez avant de fusionner : un document mal rattaché est un document perdu.
+        </p>
+
+        <div class="merge">
+          <div class="merge-head">
+            <span class="mono">MS</span>
+            <div>
+              <p class="merge-title">Mehdi Slama</p>
+              <p class="merge-sub">3 variantes · 52 documents</p>
+            </div>
+          </div>
+          <div class="variants">
+            <div class="variant"><span class="tick">✓</span>Mehdi Slama<em>31 doc.</em></div>
+            <div class="variant"><span class="tick">✓</span>M. Mehdi Slama<em>14 doc.</em></div>
+            <div class="variant"><span class="tick">✓</span>SLAMA Mehdi<em>7 doc.</em></div>
+          </div>
+          <div class="merge-actions">
+            <span class="sep">Séparer</span>
+            <span>Fusionner</span>
+          </div>
+        </div>
+
+        <div class="merge">
+          <div class="merge-head">
+            <span class="mono">LS</span>
+            <div>
+              <p class="merge-title">Léa Slama</p>
+              <p class="merge-sub">2 variantes · 23 documents</p>
+            </div>
+          </div>
+          <div class="variants">
+            <div class="variant"><span class="tick">✓</span>Léa Slama<em>19 doc.</em></div>
+            <div class="variant"><span class="tick" style="background:var(--surface-2);color:var(--text-3)">?</span>Lea SLAMA<em>4 doc.</em></div>
+          </div>
+          <div class="merge-actions">
+            <span class="sep">Séparer</span>
+            <span>Fusionner</span>
+          </div>
+        </div>
+
+        <p class="hint" style="margin-top:18px">Rien n'est fusionné sans votre geste. Une fusion se défait à tout moment depuis la fiche de la personne.</p>
+      </div>
+
+      <nav class="tabbar">
+        <span class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h7l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M13 3v5h5"/><path d="M8.5 13h7M8.5 16.5h4.5"/></svg>Documents</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5.5A1.5 1.5 0 0 1 4.5 4H7"/><path d="M21 8V5.5A1.5 1.5 0 0 0 19.5 4H17"/><path d="M3 16v2.5A1.5 1.5 0 0 0 4.5 20H7"/><path d="M21 16v2.5a1.5 1.5 0 0 1-1.5 1.5H17"/><circle cx="12" cy="12" r="3.25"/></svg>Scanner</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m4 7 2 2 3.5-3.5"/><path d="m4 17 2 2 3.5-3.5"/><path d="M13 7.5h7M13 17.5h7"/></svg>Tâches</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 14.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.11a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.11a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.08A1.7 1.7 0 0 0 10.14 3.1V3a2 2 0 1 1 4 0v.11a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.08a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.11a1.7 1.7 0 0 0-1.49 1.03Z"/></svg>Réglages</span>
+      </nav>
+      <div class="homebar"></div>
+    </div>
+  </div>
+
+  <!-- ============ CATÉGORIE SOMBRE ============ -->
+  <div>
+    <p class="screen-caption">Une catégorie — sombre</p>
+    <div class="phone dark">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><span class="si"><svg viewBox="0 0 18 12" width="17" height="11" fill="currentColor"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="4.5" y="5.5" width="3" height="6.5" rx="1"/><rect x="9" y="3" width="3" height="9" rx="1"/><rect x="13.5" y="0.5" width="3" height="11.5" rx="1"/></svg><svg viewBox="0 0 16 12" width="16" height="11" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1 4.2a10 10 0 0 1 14 0"/><path d="M3.6 6.9a6.4 6.4 0 0 1 8.8 0"/><path d="M6.2 9.5a2.8 2.8 0 0 1 3.6 0"/></svg><svg viewBox="0 0 26 12" width="24" height="11" fill="none"><rect x="0.6" y="0.6" width="21" height="10.8" rx="3.2" stroke="currentColor" stroke-opacity=".45" stroke-width="1.1"/><rect x="2.2" y="2.2" width="17.8" height="7.6" rx="2" fill="currentColor"/><path d="M23.2 4.2v3.6a2.4 2.4 0 0 0 0-3.6Z" fill="currentColor" fill-opacity=".45"/></svg></span></div>
+
+      <div class="nav">
+        <div class="nav-row">
+          <span class="nav-back"><svg viewBox="0 0 12 20" width="11" height="19" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2 2 10l8 8"/></svg>Catégories</span>
+          <span class="nav-action">Filtrer</span>
+        </div>
+      </div>
+
+      <div class="body">
+        <div class="hero" style="padding-top:0">
+          <span class="chip lg" style="background:var(--cat-sante);width:66px;height:66px;border-radius:20px"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 6.6a5 5 0 0 0-8.8-1.9 5 5 0 0 0-8.8 1.9c-.6 2.4.8 4.4 2.3 5.9L12 19l6.5-6.5c1.5-1.5 2.9-3.5 2.3-5.9Z"/></svg></span>
+          <h2>Santé</h2>
+          <p>18 documents · 3 personnes</p>
+        </div>
+
+        <div class="group">
+          <div class="doc">
+            <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div></div>
+            <div class="doc-main">
+              <p class="doc-title">Ordonnance — Dr Lemoine</p>
+              <p class="doc-sub">Nora Slama · 2 mars</p>
+            </div>
+            <span class="tag late">En retard</span>
+          </div>
+          <div class="doc">
+            <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div></div>
+            <div class="doc-main">
+              <p class="doc-title">Certificat médical — sport</p>
+              <p class="doc-sub">Léa Slama · 28 févr.</p>
+            </div>
+            <span class="tag late">En retard</span>
+          </div>
+          <div class="doc">
+            <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div></div>
+            <div class="doc-main">
+              <p class="doc-title">Relevé mutuelle — février</p>
+              <p class="doc-sub">Mehdi Slama · 14 févr.</p>
+            </div>
+          </div>
+          <div class="doc">
+            <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div></div>
+            <div class="doc-main">
+              <p class="doc-title">Carnet de vaccination</p>
+              <p class="doc-sub">Léa Slama · 2 mars</p>
+            </div>
+          </div>
+          <div class="doc">
+            <div class="thumb"><div class="lines"><i></i><i></i><i></i><i></i></div></div>
+            <div class="doc-main">
+              <p class="doc-title">Feuille de soins</p>
+              <p class="doc-sub">Mehdi Slama · 19 janv.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="tabbar">
+        <span class="tab on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h7l5 5v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"/><path d="M13 3v5h5"/><path d="M8.5 13h7M8.5 16.5h4.5"/></svg>Documents</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5.5A1.5 1.5 0 0 1 4.5 4H7"/><path d="M21 8V5.5A1.5 1.5 0 0 0 19.5 4H17"/><path d="M3 16v2.5A1.5 1.5 0 0 0 4.5 20H7"/><path d="M21 16v2.5a1.5 1.5 0 0 1-1.5 1.5H17"/><circle cx="12" cy="12" r="3.25"/></svg>Scanner</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m4 7 2 2 3.5-3.5"/><path d="m4 17 2 2 3.5-3.5"/><path d="M13 7.5h7M13 17.5h7"/></svg>Tâches</span>
+        <span class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 14.5a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1.03 1.56V21a2 2 0 1 1-4 0v-.11a1.7 1.7 0 0 0-1.11-1.56 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.56-1.03H3a2 2 0 1 1 0-4h.11a1.7 1.7 0 0 0 1.56-1.11 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.08A1.7 1.7 0 0 0 10.14 3.1V3a2 2 0 1 1 4 0v.11a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.08a1.7 1.7 0 0 0 1.56 1.03H21a2 2 0 1 1 0 4h-.11a1.7 1.7 0 0 0-1.49 1.03Z"/></svg>Réglages</span>
+      </nav>
+      <div class="homebar"></div>
+    </div>
+  </div>
+
+</div>
+
+<h2>Ce qu'il faut construire</h2>
+<p class="small">Le tri par catégorie est presque entièrement livré côté serveur — c'est du front pur. Le tri par personne demande une brique de données qui n'existe pas.</p>
+
+<table>
+  <tr><th style="width:190px">Brique</th><th style="width:120px">État</th><th>Détail</th></tr>
+  <tr><td>Catégories</td><td class="ok">Tout existe</td><td><code>slug</code>, <code>name</code>, <code>color</code>, <code>icon</code>, <code>is_system</code> et <code>documents_count</code> sont déjà servis par <code>GET /api/categories</code>, et <code>GET /api/documents?category=</code> filtre déjà. Le front ignore couleur et icône : il n'y a que des écrans à écrire.</td></tr>
+  <tr><td>Couleurs harmonisées</td><td class="todo-b">1 migration</td><td>Mettre à jour les 12 valeurs <code>color</code> en base. Rien d'autre ne bouge — le front lit la couleur servie.</td></tr>
+  <tr><td>Personnes</td><td class="todo-b">À créer</td><td>Table <code>people</code> (<code>user_id</code>, <code>display_name</code>, <code>is_self</code>) + <code>person_aliases</code> (<code>person_id</code>, <code>normalized</code>, <code>raw</code>), et <code>documents.person_id</code> nullable.</td></tr>
+  <tr><td>Rapprochement</td><td class="todo-b">À créer</td><td>À l'analyse, normaliser <code>recipient</code> — minuscules, accents retirés, civilités (M., Mme, Dr…) ôtées, ordre nom/prénom indifférent — puis chercher un alias existant. Aucune correspondance : la personne reste en attente de rattachement, jamais fusionnée d'office.</td></tr>
+  <tr><td>Index</td><td class="todo-b">1 migration</td><td>Il existe un index trigramme sur <code>issuer</code>, <b>pas sur <code>recipient</code></b>. Le rapprochement approché en a besoin.</td></tr>
+  <tr><td>API</td><td class="todo-b">À créer</td><td><code>GET /api/people</code> (avec <code>documents_count</code> et répartition par catégorie), <code>PATCH /api/people/{id}</code>, <code>POST /api/people/merge</code>, <code>POST /api/people/{id}/split</code>, et le filtre <code>GET /api/documents?person=</code>.</td></tr>
+</table>
+
+<h3>Deux garde-fous de conception</h3>
+<p class="small">
+  <b>Jamais de fusion automatique.</b> Rapprocher « Léa Slama » et « Lea SLAMA » est probablement juste ; rapprocher « M. Slama » et « Mme Slama » serait faux et invisible. L'app propose, l'utilisateur tranche, et toute fusion se défait.<br>
+  <b>Le classement ne doit jamais être un péage.</b> « Tous » reste l'onglet par défaut, la recherche continue de tout balayer, et un document sans destinataire reconnu reste parfaitement utilisable — il atterrit dans « Sans destinataire », qui est une case légitime et non une erreur.
+</p>
+
+</div>
+</body>
+</html>

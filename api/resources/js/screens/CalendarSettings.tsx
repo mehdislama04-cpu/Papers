@@ -70,24 +70,24 @@ export default function CalendarSettings() {
         <div className="flex flex-col gap-5 px-4 pb-8 pt-2">
             <header>
                 <h1 className="text-xl font-semibold">Calendrier iCloud</h1>
-                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                <p className="mt-1 text-sm text-fg-3">
                     Chaque echeance detectee dans vos documents devient un evenement avec rappel, dans un
                     calendrier dedie. Rien n’est ecrit ailleurs dans votre compte.
                 </p>
             </header>
 
             {message && (
-                <p className="rounded-lg bg-sky-50 px-3 py-2 text-sm text-sky-800 dark:bg-sky-950/50 dark:text-sky-300">
+                <p className="rounded-sm bg-accent-bg px-3 py-2 text-sm text-accent">
                     {message}
                 </p>
             )}
 
             {current && (
-                <section className="rounded-xl border border-neutral-200 p-3 dark:border-neutral-800">
+                <section className="rounded-md border border-edge p-3">
                     <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
                             <p className="truncate text-sm font-medium">{current.apple_id}</p>
-                            <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                            <p className="text-xs text-fg-3">
                                 {current.status_label}
                                 {current.calendar_name && ` · ${current.calendar_name}`}
                             </p>
@@ -95,10 +95,10 @@ export default function CalendarSettings() {
                         <span
                             className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${
                                 current.is_ready
-                                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                                    ? 'bg-done-bg text-done-fg'
                                     : current.invalid_credentials
-                                      ? 'bg-red-100 text-red-800 dark:bg-red-950/60 dark:text-red-300'
-                                      : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                                      ? 'bg-late-bg text-late-fg'
+                                      : 'bg-soon-bg text-soon-fg'
                             }`}
                         >
                             {current.is_ready ? 'Actif' : current.invalid_credentials ? 'A reconnecter' : 'En attente'}
@@ -106,7 +106,7 @@ export default function CalendarSettings() {
                     </div>
 
                     {current.invalid_credentials && (
-                        <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-800 dark:bg-red-950/50 dark:text-red-300">
+                        <p className="mt-2 rounded-sm bg-late-bg px-3 py-2 text-xs text-late-fg">
                             Apple a refuse la connexion. C’est normal si vous avez change le mot de passe
                             principal de votre compte Apple : cela <strong>revoque automatiquement tous</strong> les
                             mots de passe d’application. Generez-en un nouveau et reconnectez-vous ci-dessous.
@@ -114,7 +114,7 @@ export default function CalendarSettings() {
                     )}
 
                     {current.last_error && !current.invalid_credentials && (
-                        <p className="mt-2 text-xs text-red-600 dark:text-red-400">{current.last_error}</p>
+                        <p className="mt-2 text-xs text-late-fg">{current.last_error}</p>
                     )}
 
                     <div className="mt-3 flex gap-2">
@@ -122,7 +122,7 @@ export default function CalendarSettings() {
                             type="button"
                             onClick={() => resync.mutate()}
                             disabled={resync.isPending || !current.is_ready}
-                            className="flex-1 rounded-lg border border-neutral-300 px-3 py-2 text-sm disabled:opacity-40 dark:border-neutral-700"
+                            className="flex-1 rounded-sm border border-edge px-3 py-2 text-sm disabled:opacity-40"
                         >
                             {resync.isPending ? 'Synchronisation…' : 'Resynchroniser'}
                         </button>
@@ -130,7 +130,7 @@ export default function CalendarSettings() {
                             type="button"
                             onClick={() => disconnect.mutate()}
                             disabled={disconnect.isPending}
-                            className="flex-1 rounded-lg border border-red-300 px-3 py-2 text-sm text-red-600 disabled:opacity-40 dark:border-red-900 dark:text-red-400"
+                            className="flex-1 rounded-sm border border-late-fg px-3 py-2 text-sm text-late-fg disabled:opacity-40"
                         >
                             Deconnecter
                         </button>
@@ -138,13 +138,13 @@ export default function CalendarSettings() {
                 </section>
             )}
 
-            <section className="rounded-xl bg-neutral-50 p-4 dark:bg-neutral-900">
+            <section className="rounded-md bg-surface-2 p-4">
                 <h2 className="text-sm font-semibold">Obtenir un mot de passe d’application</h2>
-                <p className="mt-1 text-xs text-neutral-600 dark:text-neutral-400">
+                <p className="mt-1 text-xs text-fg-2">
                     C’est gratuit. Ce n’est pas le mot de passe de votre compte Apple : c’est un code dedie,
                     revocable a tout moment, qui ne donne acces qu’au calendrier.
                 </p>
-                <ol className="mt-2 flex list-decimal flex-col gap-1.5 pl-4 text-xs text-neutral-700 dark:text-neutral-300">
+                <ol className="mt-2 flex list-decimal flex-col gap-1.5 pl-4 text-xs text-fg-2">
                     <li>
                         Votre compte Apple doit avoir l’<strong>authentification a deux facteurs activee</strong>.
                         Sans elle, Apple ne propose pas cette option.
@@ -162,7 +162,7 @@ export default function CalendarSettings() {
                     </li>
                     <li>Recopiez-le ci-dessous. Il ne sera plus jamais reaffiche par Apple.</li>
                 </ol>
-                <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">
+                <p className="mt-2 text-xs text-fg-3">
                     Vous pouvez avoir 25 mots de passe d’application au maximum, et le revoquer quand vous voulez
                     depuis la meme page.
                 </p>
@@ -180,11 +180,11 @@ export default function CalendarSettings() {
                         value={appleId}
                         onChange={(event) => setAppleId(event.target.value)}
                         placeholder="prenom.nom@icloud.com"
-                        className="rounded-xl border border-neutral-300 px-3 py-2.5 dark:border-neutral-700 dark:bg-neutral-900"
+                        className="rounded-md border border-edge px-3 py-2.5"
                         required
                     />
                     {errors.apple_id?.map((error) => (
-                        <span key={error} className="text-xs text-red-600 dark:text-red-400">
+                        <span key={error} className="text-xs text-late-fg">
                             {error}
                         </span>
                     ))}
@@ -198,15 +198,15 @@ export default function CalendarSettings() {
                         value={appPassword}
                         onChange={(event) => setAppPassword(event.target.value)}
                         placeholder="abcd-efgh-ijkl-mnop"
-                        className="rounded-xl border border-neutral-300 px-3 py-2.5 font-mono dark:border-neutral-700 dark:bg-neutral-900"
+                        className="rounded-md border border-edge px-3 py-2.5 font-mono"
                         required
                     />
                     {errors.app_password?.map((error) => (
-                        <span key={error} className="text-xs text-red-600 dark:text-red-400">
+                        <span key={error} className="text-xs text-late-fg">
                             {error}
                         </span>
                     ))}
-                    <span className="text-xs text-neutral-500 dark:text-neutral-400">
+                    <span className="text-xs text-fg-3">
                         Stocke chiffre sur le serveur. Il n’est jamais reaffiche ni renvoye au navigateur.
                     </span>
                 </label>
@@ -214,7 +214,7 @@ export default function CalendarSettings() {
                 <button
                     type="submit"
                     disabled={connect.isPending}
-                    className="rounded-xl bg-sky-600 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                    className="rounded-md bg-accent px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
                 >
                     {connect.isPending ? 'Connexion a iCloud…' : 'Connecter'}
                 </button>

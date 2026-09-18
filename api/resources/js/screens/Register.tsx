@@ -57,7 +57,7 @@ export default function Register() {
             footer={
                 <>
                     Deja inscrit ?{' '}
-                    <Link to="/login" className="font-medium text-brand-600 dark:text-brand-400">
+                    <Link to="/login" className="font-medium text-accent">
                         Se connecter
                     </Link>
                 </>

@@ -22,7 +22,7 @@ function ScreenFallback() {
     return (
         <div className="flex h-full items-center justify-center p-8" aria-busy="true">
             <span className="sr-only">Chargement</span>
-            <span className="size-6 animate-spin rounded-full border-2 border-neutral-300 border-t-brand-600 dark:border-neutral-700 dark:border-t-brand-400" />
+            <span className="size-6 animate-spin rounded-full border-2 border-edge border-t-accent" />
         </div>
     );
 }
@@ -31,10 +31,10 @@ function MissingScreen({ title, name }: { title: string; name: string }) {
     return (
         <div className="mx-auto flex max-w-md flex-col items-center gap-3 px-6 py-16 text-center">
             <h1 className="text-lg font-semibold">{title}</h1>
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+            <p className="text-[0.9375rem] text-fg-2">
                 Cet ecran n’est pas encore livre.
             </p>
-            <code className="rounded bg-neutral-100 px-2 py-1 font-mono text-xs text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400">
+            <code className="rounded bg-surface-2 px-2 py-1 font-mono text-xs text-fg-2">
                 resources/js/screens/{name}.tsx
             </code>
         </div>

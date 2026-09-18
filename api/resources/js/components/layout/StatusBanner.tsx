@@ -19,17 +19,17 @@ export function StatusBanner() {
     return (
         <div className="app-chrome shrink-0 px-4 pt-1" role="status" aria-live="polite">
             {!online && (
-                <p className="rounded-lg bg-amber-100 px-3 py-1.5 text-center text-xs font-medium text-amber-900 dark:bg-amber-950 dark:text-amber-200">
+                <p className="rounded-sm bg-soon-bg px-3 py-1.5 text-center text-xs font-medium text-soon-fg">
                     Hors ligne — vos documents partiront au retour du reseau.
                 </p>
             )}
             {online && waiting > 0 && (
-                <p className="rounded-lg bg-brand-50 px-3 py-1.5 text-center text-xs font-medium text-brand-800 dark:bg-brand-900/40 dark:text-brand-200">
+                <p className="rounded-sm bg-accent-bg px-3 py-1.5 text-center text-xs font-medium text-accent">
                     {waiting === 1 ? 'Envoi en cours…' : `${waiting} documents en cours d’envoi…`}
                 </p>
             )}
             {blocked.length > 0 && (
-                <p className="mt-1 rounded-lg bg-red-100 px-3 py-1.5 text-center text-xs font-medium text-red-900 dark:bg-red-950 dark:text-red-200">
+                <p className="mt-1 rounded-sm bg-late-bg px-3 py-1.5 text-center text-xs font-medium text-late-fg">
                     {blocked.length === 1
                         ? '1 envoi a echoue.'
                         : `${blocked.length} envois ont echoue.`}{' '}

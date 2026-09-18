@@ -61,15 +61,15 @@ export default function ShortcutOnboarding() {
         <div className="flex flex-col gap-5 px-4 pb-8 pt-2">
             <header>
                 <h1 className="text-xl font-semibold">Scanner natif Apple</h1>
-                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                <p className="mt-1 text-sm text-fg-3">
                     Utiliser le scanner de documents d’iOS — celui de Notes et Fichiers — plutot que le scanner
                     integre a l’application.
                 </p>
             </header>
 
-            <section className="rounded-xl bg-amber-50 p-3 dark:bg-amber-950/40">
-                <h2 className="text-sm font-semibold text-amber-900 dark:text-amber-200">A lire avant de commencer</h2>
-                <ul className="mt-1.5 flex list-disc flex-col gap-1 pl-4 text-xs text-amber-900 dark:text-amber-200">
+            <section className="rounded-md bg-soon-bg p-3">
+                <h2 className="text-sm font-semibold text-soon-fg">A lire avant de commencer</h2>
+                <ul className="mt-1.5 flex list-disc flex-col gap-1 pl-4 text-xs text-soon-fg">
                     <li>
                         Le scanner d’Apple n’est accessible par <strong>aucune API web</strong>. Ce pont passe par
                         l’app Raccourcis, et demande une installation manuelle unique.
@@ -88,13 +88,13 @@ export default function ShortcutOnboarding() {
 
             <section>
                 <h2 className="mb-2 text-sm font-semibold">Construire le raccourci</h2>
-                <ol className="flex list-decimal flex-col gap-2.5 pl-4 text-sm text-neutral-700 dark:text-neutral-300">
+                <ol className="flex list-decimal flex-col gap-2.5 pl-4 text-sm text-fg-2">
                     <li>
                         Installez l’app <strong>Actions</strong> depuis l’App Store (gratuite).
                     </li>
                     <li>
                         Ouvrez <strong>Raccourcis</strong>, creez un nouveau raccourci et nommez-le exactement{' '}
-                        <code className="rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-xs dark:bg-neutral-900">
+                        <code className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-xs">
                             {SHORTCUT_NAME}
                         </code>
                         . Ce nom est son <strong>seul identifiant</strong> : s’il differe, le lancement echouera sans
@@ -120,11 +120,11 @@ export default function ShortcutOnboarding() {
                                 <button
                                     type="button"
                                     onClick={copyEndpoint}
-                                    className="break-all rounded bg-neutral-100 px-1.5 py-0.5 text-left font-mono text-[11px] dark:bg-neutral-900"
+                                    className="break-all rounded bg-surface-2 px-1.5 py-0.5 text-left font-mono text-[11px]"
                                 >
                                     {endpoint}
                                 </button>
-                                {copied && <span className="ml-1 text-emerald-600">copie</span>}
+                                {copied && <span className="ml-1 text-done-fg">copie</span>}
                             </li>
                             <li>Methode : POST</li>
                             <li>
@@ -137,7 +137,7 @@ export default function ShortcutOnboarding() {
                                 <span className="font-mono">file</span> dont vous basculez le type de{' '}
                                 <em>Texte</em> a <em>Fichier</em>, avec le presse-papiers comme valeur
                             </li>
-                            <li className="text-amber-700 dark:text-amber-300">
+                            <li className="text-soon-fg">
                                 Ne definissez <strong>pas</strong> de Content-Type a la main : Raccourcis genere
                                 lui-meme la limite multipart, et un en-tete manuel casse l’envoi.
                             </li>
@@ -150,7 +150,7 @@ export default function ShortcutOnboarding() {
                     </li>
                 </ol>
 
-                <p className="mt-3 rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400">
+                <p className="mt-3 rounded-sm bg-surface-2 px-3 py-2 text-xs text-fg-2">
                     Au premier envoi, Raccourcis demandera l’autorisation de contacter ce domaine. Acceptez, sinon
                     rien ne partira. La question n’est posee qu’une fois.
                 </p>
@@ -160,7 +160,7 @@ export default function ShortcutOnboarding() {
                 <h2 className="text-sm font-semibold">Lancer un scan</h2>
 
                 {!standalone && (
-                    <p className="rounded-lg bg-neutral-100 px-3 py-2 text-xs text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400">
+                    <p className="rounded-sm bg-surface-2 px-3 py-2 text-xs text-fg-2">
                         Vous n’etes pas dans l’application installee. Ajoutez Papers a l’ecran d’accueil pour que le
                         retour depuis Raccourcis fonctionne.
                     </p>
@@ -170,18 +170,18 @@ export default function ShortcutOnboarding() {
                     type="button"
                     onClick={() => launch.mutate()}
                     disabled={launch.isPending}
-                    className="rounded-xl bg-sky-600 px-4 py-3.5 text-sm font-semibold text-white disabled:opacity-50"
+                    className="rounded-md bg-accent px-4 py-3.5 text-sm font-semibold text-white disabled:opacity-50"
                 >
                     {launch.isPending ? 'Preparation…' : 'Scanner avec l’app Apple'}
                 </button>
 
                 {status && (
-                    <p className="rounded-lg bg-neutral-100 px-3 py-2 text-xs text-neutral-700 dark:bg-neutral-900 dark:text-neutral-300">
+                    <p className="rounded-sm bg-surface-2 px-3 py-2 text-xs text-fg-2">
                         {status}
                     </p>
                 )}
 
-                <p className="text-xs text-neutral-500 dark:text-neutral-400">
+                <p className="text-xs text-fg-3">
                     Le jeton d’envoi est a usage unique et expire rapidement. Un nouveau est genere a chaque
                     lancement.
                 </p>

@@ -21,19 +21,19 @@ export function UpdatePrompt({ open, onApply, onDismiss }: UpdatePromptProps) {
             role="alertdialog"
             aria-label="Mise a jour disponible"
         >
-            <div className="mx-auto flex max-w-md items-center gap-3 rounded-2xl bg-neutral-900 px-4 py-3 text-white shadow-lg dark:bg-neutral-100 dark:text-neutral-900">
-                <p className="flex-1 text-sm">Une nouvelle version est disponible.</p>
+            <div className="mx-auto flex max-w-md items-center gap-3 rounded-lg bg-paper-900 px-4 py-3 text-paper-50 shadow-[0_12px_32px_-12px_oklch(0.2_0.01_258/0.45)]">
+                <p className="flex-1 text-[0.9375rem]">Une nouvelle version est disponible.</p>
                 <button
                     type="button"
                     onClick={onDismiss}
-                    className="tap-target px-2 text-sm text-neutral-400 dark:text-neutral-500"
+                    className="tap-target px-2 text-sm text-paper-400"
                 >
                     Plus tard
                 </button>
                 <button
                     type="button"
                     onClick={onApply}
-                    className="tap-target rounded-full bg-brand-500 px-4 text-sm font-semibold text-white"
+                    className="pressable tap-target rounded-full bg-ink-500 px-4 text-sm font-semibold text-white"
                 >
                     Mettre a jour
                 </button>

@@ -80,7 +80,7 @@ export function CornerEditor({ src, width, height, quad, onChange }: CornerEdito
     return (
         <div
             ref={frameRef}
-            className="relative w-full touch-none select-none overflow-hidden rounded-xl bg-black"
+            className="relative w-full touch-none select-none overflow-hidden rounded-md bg-black"
             style={{ aspectRatio: `${width} / ${height}` }}
         >
             <img src={src} alt="Photo a recadrer" className="h-full w-full object-contain" draggable={false} />
@@ -109,7 +109,7 @@ export function CornerEditor({ src, width, height, quad, onChange }: CornerEdito
                 <polygon
                     points={polygon}
                     fill="none"
-                    stroke="#38bdf8"
+                    stroke="var(--color-ink-400)"
                     strokeWidth={Math.max(2, width / 250)}
                     vectorEffect="non-scaling-stroke"
                 />
@@ -131,7 +131,7 @@ export function CornerEditor({ src, width, height, quad, onChange }: CornerEdito
                     }}
                 >
                     <span
-                        className={`block rounded-full border-2 border-white bg-sky-400/90 shadow-lg transition-all ${
+                        className={`block rounded-full border-2 border-white bg-[var(--color-ink-400)] shadow-lg transition-all ${
                             dragging === index ? 'size-7' : 'size-5'
                         }`}
                     />

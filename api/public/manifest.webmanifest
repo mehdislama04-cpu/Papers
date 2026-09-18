@@ -11,7 +11,7 @@
     "lang": "fr-FR",
     "dir": "ltr",
     "theme_color": "#101013",
-    "background_color": "#fafafa",
+    "background_color": "#f9fafb",
     "categories": ["productivity", "business", "utilities"],
     "prefer_related_applications": false,
     "icons": [

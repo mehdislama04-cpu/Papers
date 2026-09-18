@@ -35,8 +35,8 @@
     {{-- black-translucent : le contenu passe SOUS la barre d'état, d'où les safe-area. --}}
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#0b1120" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f9fafb" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#030406" media="(prefers-color-scheme: dark)">
 
     <meta name="description" content="Numérisez, classez et suivez vos documents papier.">
     {{-- Des documents privés n'ont rien à faire dans un index. --}}
@@ -53,13 +53,22 @@
     --}}
     <style>
         :root { color-scheme: light dark; }
-        html, body { margin: 0; height: 100%; background-color: #f8fafc; }
+        /* Equivalents sRGB de --color-bg (resources/css/app.css) :
+           oklch(0.985 0.002 258) et oklch(0.108 0.008 258). A garder alignes. */
+        html, body { margin: 0; height: 100%; background-color: #f9fafb; }
         @media (prefers-color-scheme: dark) {
-            html, body { background-color: #0b1120; }
+            html, body { background-color: #030406; }
         }
         #app { min-height: 100%; }
     </style>
 
+    {{--
+        Préambule React Refresh. Obligatoire AVANT @vite dès qu'on sert du JSX
+        via @vitejs/plugin-react : sans lui le plugin lève « can't detect
+        preamble » et l'app ne monte pas du tout en dev. La directive n'émet
+        rien en production.
+    --}}
+    @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.tsx'])
 </head>
 <body class="h-full antialiased">

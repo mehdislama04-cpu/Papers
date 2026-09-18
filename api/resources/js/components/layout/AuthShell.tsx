@@ -22,12 +22,12 @@ export function AuthShell({
                             alt=""
                             width={64}
                             height={64}
-                            className="size-16 rounded-2xl shadow-sm"
+                            className="size-16 rounded-lg shadow-sm"
                         />
                         <div>
-                            <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+                            <h1 className="text-[1.75rem] leading-8 font-bold tracking-[-0.02em]">{title}</h1>
                             {subtitle && (
-                                <p className="mt-1 text-sm text-neutral-500 dark:text-neutral-400">
+                                <p className="mt-1 text-[0.9375rem] text-fg-2">
                                     {subtitle}
                                 </p>
                             )}
@@ -37,7 +37,7 @@ export function AuthShell({
                     {children}
 
                     {footer && (
-                        <footer className="text-center text-sm text-neutral-500 dark:text-neutral-400">
+                        <footer className="text-center text-[0.9375rem] text-fg-2">
                             {footer}
                         </footer>
                     )}
@@ -59,7 +59,7 @@ export function Field({
 } & InputHTMLAttributes<HTMLInputElement>) {
     return (
         <div className="flex flex-col gap-1.5">
-            <label htmlFor={id} className="text-sm font-medium">
+            <label htmlFor={id} className="text-[0.9375rem] font-medium">
                 {label}
             </label>
             <input
@@ -68,15 +68,14 @@ export function Field({
                 aria-invalid={error ? true : undefined}
                 aria-describedby={error ? `${id}-error` : undefined}
                 className={cn(
-                    'w-full rounded-xl border bg-white px-3.5 py-3 text-base outline-none transition',
-                    'dark:bg-neutral-900',
+                    'w-full rounded-md border bg-surface px-3.5 py-3 text-base outline-none transition-colors',
                     error
-                        ? 'border-red-400 focus:border-red-500'
-                        : 'border-neutral-300 focus:border-brand-500 dark:border-neutral-700',
+                        ? 'border-late-fg focus:border-late-fg'
+                        : 'border-edge focus:border-accent',
                 )}
             />
             {error && (
-                <p id={`${id}-error`} className="text-sm text-red-600 dark:text-red-400">
+                <p id={`${id}-error`} className="text-[0.8125rem] text-late-fg">
                     {error}
                 </p>
             )}
@@ -95,7 +94,7 @@ export function SubmitButton({
         <button
             type="submit"
             disabled={pending}
-            className="tap-target w-full rounded-xl bg-brand-600 px-4 py-3 text-base font-semibold text-white transition active:bg-brand-700 disabled:opacity-60"
+            className="pressable flex h-13 w-full items-center justify-center rounded-md bg-accent px-4 font-semibold text-on-accent disabled:opacity-50"
         >
             {pending ? 'Un instant…' : children}
         </button>
@@ -107,7 +106,7 @@ export function FormError({ message }: { message?: string | null }) {
     return (
         <p
             role="alert"
-            className="rounded-xl bg-red-50 px-3.5 py-3 text-sm text-red-700 dark:bg-red-950/60 dark:text-red-300"
+            className="rounded-md bg-late-bg px-3.5 py-3 text-[0.9375rem] text-late-fg"
         >
             {message}
         </p>
