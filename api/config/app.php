@@ -78,7 +78,11 @@ return [
     |
     */
 
-    'locale' => env('APP_LOCALE', 'en'),
+    // L'app est en français, de bout en bout : c'est le défaut, pas une
+    // option d'environnement à ne pas oublier. `fallback_locale` reste en :
+    // une règle de validation absente de lang/fr retombe alors sur une phrase
+    // anglaise correcte, jamais sur la clé brute « validation.required ».
+    'locale' => env('APP_LOCALE', 'fr'),
 
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 
+import { ValidationError } from '../../lib/api';
 import type { Person } from '../../lib/people';
 import { useRemovePersonPhoto, useRenamePerson, useSetPersonPhoto } from '../../lib/personPhotos';
 
@@ -74,14 +75,25 @@ export function PersonSheet({ person, open, onClose }: PersonSheetProps) {
     const fail = (cause: unknown, fallback: string) => {
         // Un échec muet est pire que pas de fonctionnalité : l'utilisateur
         // recommence indéfiniment sans savoir ce qui cloche.
+        if (cause instanceof ValidationError) {
+            /*
+             | Les messages par CHAMP, jamais le résumé. Laravel renvoie dans
+             | `message` la première erreur suivie de « (and 2 more errors) » :
+             | ça dit qu'il y a un problème, pas lequel ni où.
+             */
+            const messages = Object.values(cause.errors).flat();
+
+            setError(messages.length > 0 ? messages.join(' ') : cause.message);
+
+            return;
+        }
+
         setError(cause instanceof Error ? cause.message : fallback);
     };
 
     const onPick = (event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        // Remis à zéro tout de suite : sans ça, rechoisir le MÊME fichier
-        // n'émet aucun change et le geste paraît ignoré.
-        event.target.value = '';
+        const field = event.target;
+        const file = field.files?.[0];
 
         if (!file) return;
 
@@ -91,6 +103,16 @@ export function PersonSheet({ person, open, onClose }: PersonSheetProps) {
             {
                 onSuccess: onClose,
                 onError: (cause) => fail(cause, "La photo n'a pas pu être envoyée."),
+                /*
+                 | La remise à zéro attend que la requête soit retombée. La
+                 | faire avant, comme au premier jet, revient à couper la
+                 | référence au fichier pendant qu'on est encore en train de le
+                 | lire. Elle reste nécessaire : sans elle, rechoisir le MÊME
+                 | fichier n'émet aucun change et le geste paraît ignoré.
+                 */
+                onSettled: () => {
+                    field.value = '';
+                },
             },
         );
     };

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api, type Envelope } from './api';
+import { shrinkImage } from './image';
 import type { Person } from './people';
 
 /**
@@ -55,12 +56,14 @@ export function useSetPersonPhoto() {
     const client = useQueryClient();
 
     return useMutation({
-        mutationFn: ({ person, file }: { person: Person; file: File }) => {
+        mutationFn: async ({ person, file }: { person: Person; file: File }) => {
             const form = new FormData();
 
             personFields(person, form);
             form.append('name', person.name);
-            form.append('photo', file);
+            // Reduite avant l'envoi : le serveur n'en garde qu'un carre de
+            // 320 px, inutile de faire transiter huit megaoctets pour ca.
+            form.append('photo', await shrinkImage(file));
 
             return api.upload<Envelope<StoredPerson>>('/people/photo', form);
         },

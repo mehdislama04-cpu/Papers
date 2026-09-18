@@ -53,11 +53,25 @@ clientsClaim();
 /* 1. Reseau seul — avant tout le reste, l'ordre des routes fait foi           */
 /* -------------------------------------------------------------------------- */
 
+/**
+ * GET UNIQUEMENT. Ne jamais reenregistrer les mutations ici.
+ *
+ * Une strategie NetworkOnly sur un POST ne change rien au resultat — c'est
+ * exactement ce que ferait le navigateur sans service worker — mais elle force
+ * la requete a traverser le worker, qui la ree-emet via `fetch(event.request)`.
+ * Sur WebKit, ree-emettre ainsi une requete porteuse d'un corps MULTIPART perd
+ * ce corps : le flux n'est pas rejouable, et Safari part avec un corps vide.
+ *
+ * Symptome vecu : l'envoi d'une photo de personne depuis l'iPhone arrivait
+ * authentifie, CSRF valide, et completement vide — « le champ personne est
+ * obligatoire » sur les trois champs a la fois. Le renommage, lui, passait :
+ * il envoie du JSON. Le meme piege menace l'upload de documents.
+ *
+ * Workbox n'ecoute que GET par defaut, precisement pour cette raison.
+ */
 const networkOnly = new NetworkOnly();
 
-for (const method of ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'] as const) {
-    registerRoute(({ url, sameOrigin }) => sameOrigin && isNetworkOnly(url.pathname), networkOnly, method);
-}
+registerRoute(({ url, sameOrigin }) => sameOrigin && isNetworkOnly(url.pathname), networkOnly);
 
 /* -------------------------------------------------------------------------- */
 /* 2. Navigations — coquille de l'app                                          */
@@ -133,9 +147,10 @@ registerRoute(
     }),
 );
 
-/* Aucune route pour les POST/PATCH/DELETE hors reseau seul : registerRoute
- * n'ecoute que GET par defaut, et les mutations passent par la file
- * IndexedDB de lib/queue.ts, jamais par le service worker. */
+/* AUCUNE route pour les POST/PATCH/DELETE, nulle part : registerRoute n'ecoute
+ * que GET par defaut, et une mutation qui traverse le worker y perd son corps
+ * multipart sur WebKit (cf. le bloc « reseau seul » plus haut). Les envois
+ * differes passent par la file IndexedDB de lib/queue.ts, jamais par ici. */
 
 /* -------------------------------------------------------------------------- */
 /* 5. Cycle de vie                                                             */
