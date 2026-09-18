@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\UpsertsPeople;
 use App\Http\Requests\StorePersonPhotoRequest;
 use App\Http\Resources\PersonResource;
 use App\Models\Person;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Image;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -24,6 +24,8 @@ use Throwable;
  */
 class PersonPhotoController extends Controller
 {
+    use UpsertsPeople;
+
     /** Disque privé, jamais exposé en direct — le même que les pages. */
     private const DISK = 'documents';
 
@@ -34,26 +36,18 @@ class PersonPhotoController extends Controller
         $this->authorize('create', Person::class);
 
         /*
-         | Upsert dans une transaction : la personne, ses graphies et le chemin
-         | de la photo doivent atterrir ensemble. Une personne créée sans sa
-         | photo réapparaîtrait comme un monogramme, sans que rien ne dise
-         | pourquoi.
+         | Le nom part en `chosenByHand: false` : il vient des documents, donc
+         | il ne doit PAS écraser un nom que l'utilisateur aurait choisi. Sans
+         | cette distinction, ajouter une photo ferait revenir « M. JEAN
+         | DUPONT » sur une personne renommée « Papa ».
          */
-        $person = DB::transaction(function () use ($user, $request): Person {
-            /** @var Person $person */
-            $person = $user->people()->firstOrNew(['match_key' => $request->matchKey()]);
-
-            // Le nom affiché suit la graphie la plus fréquente, qui peut avoir
-            // changé depuis la dernière fois.
-            $person->display_name = $request->displayName();
-            $person->save();
-
-            foreach ($request->aliases() as $raw) {
-                $person->aliases()->firstOrCreate(['raw' => $raw]);
-            }
-
-            return $person;
-        });
+        $person = $this->upsertPerson(
+            $user,
+            $request->matchKey(),
+            $request->displayName(),
+            $request->aliases(),
+            chosenByHand: false,
+        );
 
         $this->authorize('update', $person);
 

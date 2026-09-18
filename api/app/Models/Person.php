@@ -38,7 +38,21 @@ class Person extends Model
     {
         return [
             'photo_updated_at' => 'datetime',
+            'name_overridden' => 'boolean',
         ];
+    }
+
+    /**
+     * Le nom suit-il encore les documents ?
+     *
+     * Tant qu'il n'a pas été choisi à la main, il vaut la graphie la plus
+     * fréquente et se rafraîchit tout seul. Dès qu'il l'a été, il est figé :
+     * le réécrire depuis un document reviendrait à défaire, en silence, ce que
+     * l'utilisateur vient de décider.
+     */
+    public function followsDocuments(): bool
+    {
+        return $this->getAttribute('name_overridden') !== true;
     }
 
     public function user(): BelongsTo

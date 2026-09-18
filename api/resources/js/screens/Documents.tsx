@@ -6,7 +6,7 @@ import { api, type PaginatedEnvelope, type Envelope } from '../lib/api';
 import { categoryColor } from '../lib/categories';
 import { useOutbox } from '../lib/hooks';
 import { groupByRecipient, needsAttention, PEOPLE_PAGE } from '../lib/people';
-import { attachPhotos, useStoredPeople } from '../lib/personPhotos';
+import { attachStored, useStoredPeople } from '../lib/personPhotos';
 import type { Category, Document, DocumentStatus } from '../lib/types';
 
 import { NavBar } from '../components/ui/NavBar';
@@ -275,7 +275,7 @@ function PeopleView() {
     // Les groupes viennent des documents, les photos du serveur : on recolle
     // les deux par la cle de rapprochement.
     const people = useMemo(
-        () => attachPhotos(grouped, storedPeople.data?.data ?? []),
+        () => attachStored(grouped, storedPeople.data?.data ?? []),
         [grouped, storedPeople.data],
     );
 

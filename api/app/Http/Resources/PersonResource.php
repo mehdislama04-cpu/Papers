@@ -32,6 +32,11 @@ class PersonResource extends JsonResource
             'key' => $this->match_key,
             'name' => $this->display_name,
 
+            // Dit au front s'il doit imposer ce nom ou laisser parler les
+            // documents. Sans ce drapeau il ne saurait pas départager un nom
+            // choisi à la main d'une graphie simplement mémorisée.
+            'name_overridden' => (bool) $this->name_overridden,
+
             // Jamais de chemin de stockage : le fichier passe par une route
             // signée qui repasse par la policy (cf. PersonPhotoFileController).
             'photo_url' => $this->hasPhoto() ? $this->signedPhotoUrl() : null,

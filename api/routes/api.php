@@ -123,6 +123,12 @@ Route::middleware('auth:sanctum')->group(function (): void {
     | encore en base. La requête porte donc la clé, et le contrôleur upserte.
     */
     Route::get('/people', [PersonController::class, 'index'])->name('people.index');
+
+    // Renommage. Comme la photo, la requête porte la clé plutôt qu'un
+    // identifiant : la personne n'existe peut-être pas encore. Le nom envoyé
+    // ici est figé — plus aucun document ne le réécrira.
+    Route::post('/people', [PersonController::class, 'store'])->name('people.store');
+
     Route::post('/people/photo', [PersonPhotoController::class, 'store'])
         ->middleware('throttle:60,1')
         ->name('people.photo.store');

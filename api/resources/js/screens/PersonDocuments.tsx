@@ -5,7 +5,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { api, type PaginatedEnvelope } from '../lib/api';
 import { categoryColor } from '../lib/categories';
 import { groupByRecipient, PEOPLE_PAGE } from '../lib/people';
-import { attachPhotos, useStoredPeople } from '../lib/personPhotos';
+import { attachStored, useStoredPeople } from '../lib/personPhotos';
 import type { Document } from '../lib/types';
 
 import { NavBar } from '../components/ui/NavBar';
@@ -45,7 +45,7 @@ export default function PersonDocuments() {
     );
 
     const withPhotos = useMemo(
-        () => attachPhotos(people, storedPeople.data?.data ?? []),
+        () => attachStored(people, storedPeople.data?.data ?? []),
         [people, storedPeople.data],
     );
 
