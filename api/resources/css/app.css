@@ -234,8 +234,11 @@ body {
 }
 
 @layer components {
-    /* Conteneur plein ecran, respecte l'encoche (iPhone 14 Plus : encoche,
-     * pas de Dynamic Island) et le home indicator (34pt). */
+    /* Conteneur plein ecran. La barre d'etat etant opaque (status-bar-style
+     * `default`), env(safe-area-inset-top) vaut 0 en portrait installe et ce
+     * padding ne creuse plus rien ; il reste utile en paysage, ou les insets
+     * lateraux et l'encoche comptent vraiment. Le bas garde ses 34 pt
+     * d'indicateur d'accueil. */
     .app-shell {
         display: flex;
         flex-direction: column;
@@ -257,6 +260,10 @@ body {
         z-index: 30;
         margin-inline: -1rem;
         padding-inline: 1rem;
+        /* Les ecrans racine (Documents, Reglages) n'ont ni retour ni action :
+         * la rangee du haut disparait et le grand titre se retrouverait colle
+         * a la barre d'etat. Ce demi-cran le decolle sans creuser de bande. */
+        padding-top: 0.5rem;
         background-color: var(--color-chrome);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);

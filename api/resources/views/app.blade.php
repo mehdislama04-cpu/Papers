@@ -32,8 +32,21 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'Papers') }}">
-    {{-- black-translucent : le contenu passe SOUS la barre d'état, d'où les safe-area. --}}
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    {{--
+        `default`, et surtout PAS `black-translucent`.
+
+        black-translucent fait passer le contenu sous la barre d'état et y
+        dessine des glyphes blancs : depuis que l'app est en clair, l'heure et
+        la batterie devenaient invisibles sur un fond presque blanc. Il forçait
+        aussi 47 pt de safe-area haute, qui se lisaient comme une bande vide
+        au-dessus du grand titre.
+
+        Avec `default`, iOS insère la vue sous une barre d'état opaque et
+        lisible, et env(safe-area-inset-top) retombe à 0 — la bande disparaît
+        d'elle-même. Le bas ne bouge pas : viewport-fit=cover continue de
+        donner les 34 pt de l'indicateur d'accueil.
+    --}}
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
     {{-- Une seule valeur, sans media : l'app est en clair quel que soit le
          reglage de l'appareil (cf. resources/css/app.css). --}}

@@ -92,7 +92,12 @@ export function TabBar() {
                             end={tab.end}
                             className={({ isActive }) =>
                                 cn(
-                                    'tap-target flex flex-col items-center justify-center gap-0.5 text-[0.625rem] font-medium transition-colors',
+                                    // `leading-[0.8125rem]` n'est pas cosmetique : sans interligne
+                                    // propre, l'etiquette herite du `line-height: 1.375rem` de
+                                    // body. Une etiquette de 10 px occupe alors une ligne de
+                                    // 22 px, la pile icone + texte monte a 50 px dans une bande
+                                    // de 52 px, et le groupe se plaque en haut de la barre.
+                                    'tap-target flex flex-col items-center justify-center gap-0.5 text-[0.625rem] leading-[0.8125rem] font-medium transition-colors',
                                     isActive ? 'text-accent' : 'text-fg-3',
                                 )
                             }
