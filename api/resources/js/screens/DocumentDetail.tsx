@@ -130,7 +130,7 @@ export default function DocumentDetail() {
             <header className="mb-4 flex items-start gap-3">
                 {doc.category && <CategoryChip category={doc.category} size="md" />}
                 <div className="min-w-0 flex-1">
-                    <h1 className="text-[1.625rem] leading-8 font-bold tracking-[-0.02em]">
+                    <h1 className="font-serif text-[1.625rem] leading-8 font-semibold tracking-[-0.02em]">
                         {doc.title}
                     </h1>
                     <p className="mt-0.5 text-[0.9375rem] text-fg-3">

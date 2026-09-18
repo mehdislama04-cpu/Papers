@@ -25,7 +25,7 @@ export function AuthShell({
                             className="size-16 rounded-lg shadow-sm"
                         />
                         <div>
-                            <h1 className="text-[1.75rem] leading-8 font-bold tracking-[-0.02em]">{title}</h1>
+                            <h1 className="font-serif text-[1.75rem] leading-8 font-semibold tracking-[-0.02em]">{title}</h1>
                             {subtitle && (
                                 <p className="mt-1 text-[0.9375rem] text-fg-2">
                                     {subtitle}

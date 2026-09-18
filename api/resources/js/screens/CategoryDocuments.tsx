@@ -51,7 +51,7 @@ export default function CategoryDocuments() {
 
             <div className="flex flex-col items-center gap-2.5 pt-1 pb-5">
                 {category && <CategoryChip category={category} size="lg" />}
-                <h1 className="text-[1.625rem] leading-8 font-bold tracking-[-0.02em]">
+                <h1 className="font-serif text-[1.625rem] leading-8 font-semibold tracking-[-0.02em]">
                     {category?.name ?? 'Categorie'}
                 </h1>
                 {!documents.isPending && (

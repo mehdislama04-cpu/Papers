@@ -47,6 +47,12 @@ type PillTone = 'neutral' | 'late' | 'soon' | 'done' | 'working';
 
 /**
  * Etiquette d'etat : une PILULE, toujours. Couleurs de signal uniquement.
+ *
+ * Les tons de signal sont des APLATS pleins, pas des teintes pales : c'est ce
+ * qui les fait exister a 12 px au milieu d'une ligne chargee. L'encre posee
+ * dessus vient de `on-<ton>` et n'est pas negociable — le blanc echoue sur le
+ * jaune et sur le vert, l'encre echoue sur le violet. Le ton neutre, lui, reste
+ * sourd : il porte un montant ou un compte, pas un etat.
  */
 export function Pill({
     tone = 'neutral',
@@ -57,10 +63,10 @@ export function Pill({
 }) {
     const tones: Record<PillTone, string> = {
         neutral: 'bg-surface-2 text-fg-2',
-        late: 'bg-late-bg text-late-fg',
-        soon: 'bg-soon-bg text-soon-fg',
-        done: 'bg-done-bg text-done-fg',
-        working: 'bg-accent-bg text-accent',
+        late: 'bg-late text-on-late',
+        soon: 'bg-soon text-on-soon',
+        done: 'bg-done text-on-done',
+        working: 'bg-accent text-on-accent',
     };
 
     return (

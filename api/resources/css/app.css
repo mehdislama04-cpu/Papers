@@ -5,7 +5,11 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 /* ---------------------------------------------------------------------------
- * Systeme de design « encre & papier »
+ * Systeme de design « encre & neon »
+ *
+ * Gris froid et cartes blanches, puis cinq accents satures qui ont chacun un
+ * seul sens : bleu = marque et action, cyan = capture, violet = retard et
+ * echec, vert = acquis, jaune = en cours. Aucun ne sert deux fois.
  *
  * Deux familles brutes (ink, paper) et, par-dessus, des ROLES semantiques.
  * Les ecrans n'ecrivent que des roles : `bg-surface`, `text-fg-2`,
@@ -20,55 +24,82 @@
         -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', system-ui, 'Helvetica Neue',
         Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
 
+    /* Titres, noms de documents, montants. `ui-serif` donne New York sur iOS :
+     * le serif d'Apple est deja sur l'appareil, donc toujours aucune police web
+     * a telecharger. Georgia sert de repli ailleurs. */
+    --font-serif: ui-serif, 'New York', 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+
     /* — Encre : l'accent, un seul pour toute l'app. — */
-    --color-ink-50: oklch(0.97 0.013 258);
-    --color-ink-100: oklch(0.932 0.028 258);
-    --color-ink-200: oklch(0.874 0.052 258);
-    --color-ink-300: oklch(0.783 0.089 258);
-    --color-ink-400: oklch(0.672 0.132 258);
-    --color-ink-500: oklch(0.573 0.167 258);
-    --color-ink-600: oklch(0.488 0.168 258);
-    --color-ink-700: oklch(0.416 0.144 258);
-    --color-ink-800: oklch(0.352 0.114 258);
-    --color-ink-900: oklch(0.302 0.088 258);
+    --color-ink-50: oklch(0.965 0.022 270);
+    --color-ink-100: oklch(0.93 0.048 270);
+    --color-ink-200: oklch(0.878 0.085 269);
+    --color-ink-300: oklch(0.79 0.135 268);
+    --color-ink-400: oklch(0.67 0.174 271);
+    --color-ink-500: oklch(0.552 0.247 266);
+    --color-ink-600: oklch(0.471 0.224 266);
+    --color-ink-700: oklch(0.402 0.19 266);
+    --color-ink-800: oklch(0.34 0.155 266);
+    --color-ink-900: oklch(0.292 0.122 266);
 
     /* — Papier : neutres tres legerement froids (chroma <= 0.013, teinte 258).
          Un neutre chaud ferait jaunir les scans poses dessus. — */
     --color-paper-0: oklch(1 0 0);
-    --color-paper-50: oklch(0.985 0.002 258);
-    --color-paper-100: oklch(0.967 0.003 258);
-    --color-paper-200: oklch(0.928 0.005 258);
-    --color-paper-300: oklch(0.872 0.007 258);
-    --color-paper-400: oklch(0.712 0.011 258);
-    --color-paper-500: oklch(0.565 0.013 258);
-    --color-paper-600: oklch(0.458 0.013 258);
-    --color-paper-700: oklch(0.376 0.012 258);
-    --color-paper-800: oklch(0.272 0.011 258);
-    --color-paper-900: oklch(0.198 0.01 258);
-    --color-paper-950: oklch(0.146 0.009 258);
-    --color-paper-1000: oklch(0.108 0.008 258);
+    --color-paper-50: oklch(0.967 0.004 271);
+    --color-paper-100: oklch(0.952 0.006 265);
+    --color-paper-200: oklch(0.925 0.008 271);
+    --color-paper-300: oklch(0.882 0.011 270);
+    --color-paper-400: oklch(0.725 0.021 267);
+    --color-paper-500: oklch(0.654 0.025 269);
+    --color-paper-600: oklch(0.518 0.023 270);
+    --color-paper-700: oklch(0.482 0.017 268);
+    --color-paper-800: oklch(0.284 0.02 264);
+    --color-paper-900: oklch(0.218 0.012 271);
+    --color-paper-950: oklch(0.178 0.006 271);
+    --color-paper-1000: oklch(0.169 0.008 274);
 
     /* — Roles. Valeurs du mode clair ; le mode sombre les redefinit. — */
-    --color-bg: oklch(0.985 0.002 258);
+    --color-bg: oklch(0.967 0.004 271);
     --color-surface: oklch(1 0 0);
-    --color-surface-2: oklch(0.967 0.003 258);
-    --color-hairline: oklch(0.872 0.007 258 / 0.7);
-    --color-edge: oklch(0.928 0.005 258);
-    --color-fg: oklch(0.146 0.009 258);
-    --color-fg-2: oklch(0.458 0.013 258);
-    --color-fg-3: oklch(0.565 0.013 258);
-    --color-accent: oklch(0.488 0.168 258);
-    --color-accent-bg: oklch(0.97 0.013 258);
+    --color-surface-2: oklch(0.952 0.006 265);
+    --color-hairline: oklch(0.882 0.011 270 / 0.75);
+    --color-edge: oklch(0.925 0.008 271);
+    --color-fg: oklch(0.178 0.006 271);
+    --color-fg-2: oklch(0.482 0.017 268);
+    --color-fg-3: oklch(0.518 0.023 270);
+    --color-accent: oklch(0.552 0.247 266);
+    --color-accent-fg: oklch(0.471 0.224 266);
+    --color-accent-bg: oklch(0.948 0.025 274);
     --color-on-accent: oklch(1 0 0);
-    --color-chrome: oklch(1 0 0 / 0.82);
+    --color-chrome: oklch(1 0 0 / 0.86);
 
-    /* — Signaux. Ne servent QU'aux etats, jamais a la decoration. — */
-    --color-late-fg: oklch(0.52 0.195 27);
-    --color-late-bg: oklch(0.955 0.025 27);
-    --color-soon-fg: oklch(0.505 0.12 65);
-    --color-soon-bg: oklch(0.96 0.045 80);
-    --color-done-fg: oklch(0.492 0.11 158);
-    --color-done-bg: oklch(0.955 0.035 158);
+    /* — Capture. Le cyan n'existe que dans le scanner : viseur, contour
+         detecte, poignees de cadrage. Ailleurs il ne veut rien dire. — */
+    --color-capture: oklch(0.719 0.126 214);
+    --color-capture-fg: oklch(0.499 0.088 215);
+    --color-on-capture: oklch(0.178 0.006 271);
+
+    /* — Signaux. Ne servent QU'aux etats, jamais a la decoration.
+         Trois valeurs par signal, et pas une de plus :
+         nu    = l'aplat de la pastille ;
+         `on-` = la seule encre lisible dessus (le blanc echoue sur le jaune
+                 et sur le vert, l'encre echoue sur le violet) ;
+         `-fg` = le texte colore sur fond clair, ou l'aplat sature ne tient
+                 pas 4.5:1 ;
+         `-bg` = le fond des bandeaux, ou un aplat plein hurlerait. — */
+    --color-late: oklch(0.546 0.274 291);
+    --color-late-fg: oklch(0.485 0.256 291);
+    --color-late-bg: oklch(0.942 0.033 303);
+    --color-on-late: oklch(1 0 0);
+
+    --color-soon: oklch(0.846 0.169 85);
+    --color-soon-fg: oklch(0.544 0.117 71);
+    --color-soon-bg: oklch(0.964 0.052 93);
+    --color-on-soon: oklch(0.178 0.006 271);
+
+    --color-done: oklch(0.732 0.177 156);
+    --color-done-fg: oklch(0.507 0.119 158);
+    --color-done-bg: oklch(0.948 0.04 166);
+    --color-on-done: oklch(0.178 0.006 271);
 
     /* — Rayons : trois valeurs, pas six. — */
     --radius-sm: 0.625rem; /* 10px — controles */
@@ -97,27 +128,42 @@
         /* Fond quasi noir et cartes posees dessus : c'est le « grouped » sombre
          * d'iOS (fond #000, carte #1C1C1E). La surface est calee sur ce
          * #1C1C1E, sinon les cartes se confondent avec le fond. */
-        --color-bg: oklch(0.108 0.008 258);
-        --color-surface: oklch(0.235 0.01 258);
-        --color-surface-2: oklch(0.285 0.011 258);
-        --color-hairline: oklch(0.375 0.012 258 / 0.7);
-        --color-edge: oklch(0.335 0.012 258);
-        --color-fg: oklch(0.967 0.003 258);
-        --color-fg-2: oklch(0.712 0.011 258);
-        --color-fg-3: oklch(0.565 0.013 258);
-        --color-accent: oklch(0.672 0.132 258);
-        --color-accent-bg: oklch(0.302 0.088 258 / 0.35);
+        --color-bg: oklch(0.169 0.008 274);
+        --color-surface: oklch(0.218 0.012 271);
+        --color-surface-2: oklch(0.284 0.02 264);
+        --color-hairline: oklch(0.341 0.024 269 / 0.8);
+        --color-edge: oklch(0.285 0.018 266);
+        --color-fg: oklch(0.955 0.007 269);
+        --color-fg-2: oklch(0.725 0.021 267);
+        --color-fg-3: oklch(0.654 0.025 269);
+        --color-accent: oklch(0.67 0.174 271);
+        --color-accent-fg: oklch(0.67 0.174 271);
+        --color-accent-bg: oklch(0.552 0.247 266 / 0.3);
         /* Texte SOMBRE sur l'accent clair : blanc sur ink-400 ne donne que
          * 3:1, sous le seuil AA. Sur fond sombre, iOS fait de meme. */
-        --color-on-accent: oklch(0.108 0.008 258);
-        --color-chrome: oklch(0.108 0.008 258 / 0.82);
+        --color-on-accent: oklch(0.169 0.008 274);
+        --color-chrome: oklch(0.169 0.008 274 / 0.86);
 
-        --color-late-fg: oklch(0.712 0.17 27);
-        --color-late-bg: oklch(0.32 0.09 27 / 0.45);
-        --color-soon-fg: oklch(0.78 0.13 75);
-        --color-soon-bg: oklch(0.33 0.08 70 / 0.4);
-        --color-done-fg: oklch(0.74 0.12 158);
-        --color-done-bg: oklch(0.3 0.07 158 / 0.4);
+        --color-capture: oklch(0.797 0.134 212);
+        --color-capture-fg: oklch(0.797 0.134 212);
+        --color-on-capture: oklch(0.169 0.008 274);
+
+        /* Sur fond sombre, chaque signal monte en clarte et `-fg` rejoint
+         * l'aplat : un texte colore n'a plus besoin d'etre assombri. */
+        --color-late: oklch(0.686 0.189 297);
+        --color-late-fg: oklch(0.686 0.189 297);
+        --color-late-bg: oklch(0.546 0.274 291 / 0.3);
+        --color-on-late: oklch(0.169 0.008 274);
+
+        --color-soon: oklch(0.863 0.149 85);
+        --color-soon-fg: oklch(0.863 0.149 85);
+        --color-soon-bg: oklch(0.846 0.169 85 / 0.22);
+        --color-on-soon: oklch(0.169 0.008 274);
+
+        --color-done: oklch(0.804 0.171 161);
+        --color-done-fg: oklch(0.804 0.171 161);
+        --color-done-bg: oklch(0.732 0.177 156 / 0.22);
+        --color-on-done: oklch(0.169 0.008 274);
     }
 }
 
@@ -367,7 +413,7 @@ body {
         background: linear-gradient(
             105deg,
             transparent 38%,
-            oklch(0.573 0.167 258 / 0.16) 50%,
+            oklch(0.719 0.126 214 / 0.22) 50%,
             transparent 62%
         );
         animation: papers-sweep 2.2s var(--ease-ios) infinite;

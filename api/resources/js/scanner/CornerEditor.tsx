@@ -109,7 +109,7 @@ export function CornerEditor({ src, width, height, quad, onChange }: CornerEdito
                 <polygon
                     points={polygon}
                     fill="none"
-                    stroke="var(--color-ink-400)"
+                    stroke="var(--color-capture)"
                     strokeWidth={Math.max(2, width / 250)}
                     vectorEffect="non-scaling-stroke"
                 />
@@ -131,7 +131,7 @@ export function CornerEditor({ src, width, height, quad, onChange }: CornerEdito
                     }}
                 >
                     <span
-                        className={`block rounded-full border-2 border-white bg-[var(--color-ink-400)] shadow-lg transition-all ${
+                        className={`block rounded-full border-2 border-white bg-[var(--color-capture)] shadow-lg transition-all ${
                             dragging === index ? 'size-7' : 'size-5'
                         }`}
                     />

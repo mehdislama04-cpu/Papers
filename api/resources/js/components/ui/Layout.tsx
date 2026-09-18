@@ -76,7 +76,7 @@ export function EmptyState({
                     {icon}
                 </div>
             )}
-            <h2 className="text-xl leading-[1.625rem] font-semibold tracking-[-0.01em]">{title}</h2>
+            <h2 className="font-serif text-xl leading-[1.625rem] font-semibold tracking-[-0.01em]">{title}</h2>
             {children && (
                 <p className="mb-4 text-[0.9375rem] leading-[1.3125rem] text-fg-2">{children}</p>
             )}

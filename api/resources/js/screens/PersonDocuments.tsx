@@ -73,7 +73,7 @@ export default function PersonDocuments() {
                     <Monogram name={name} size="lg" />
                 )}
 
-                <h1 className="text-center text-[1.625rem] leading-8 font-bold tracking-[-0.02em]">
+                <h1 className="text-center font-serif text-[1.625rem] leading-8 font-semibold tracking-[-0.02em]">
                     {name}
                 </h1>
 

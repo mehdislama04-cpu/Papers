@@ -56,7 +56,7 @@ export function DocumentRow({ document, index = 0, context = 'default' }: Docume
             <Thumb document={document} className="h-[3.5625rem] w-11" />
 
             <div className="min-w-0 flex-1">
-                <p className="truncate leading-[1.3125rem] font-semibold">{document.title}</p>
+                <p className="truncate font-serif leading-[1.3125rem] font-medium">{document.title}</p>
                 {subtitle && (
                     <p className="truncate text-[0.875rem] leading-[1.1875rem] text-fg-2">{subtitle}</p>
                 )}

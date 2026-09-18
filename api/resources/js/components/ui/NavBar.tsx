@@ -65,7 +65,7 @@ export function NavBar({ title, back, backTo, action, subtitle, children }: NavB
             )}
 
             {title && (
-                <h1 className="mt-0.5 mb-2.5 text-[2.125rem] leading-[2.5625rem] font-bold tracking-[-0.022em]">
+                <h1 className="mt-0.5 mb-2.5 font-serif text-[2.125rem] leading-[2.5625rem] font-semibold tracking-[-0.022em]">
                     {title}
                 </h1>
             )}
