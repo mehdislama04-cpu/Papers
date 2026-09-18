@@ -5,10 +5,11 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { api, type PaginatedEnvelope } from '../lib/api';
 import { categoryColor } from '../lib/categories';
 import { groupByRecipient, PEOPLE_PAGE } from '../lib/people';
+import { attachPhotos, useStoredPeople } from '../lib/personPhotos';
 import type { Document } from '../lib/types';
 
 import { NavBar } from '../components/ui/NavBar';
-import { Monogram } from '../components/ui/Chips';
+import { PersonAvatar } from '../components/ui/PersonAvatar';
 import { DocumentRow } from '../components/ui/DocumentRow';
 import {
     DocumentSkeletons,
@@ -36,12 +37,19 @@ export default function PersonDocuments() {
         placeholderData: keepPreviousData,
     });
 
+    const storedPeople = useStoredPeople();
+
     const { people, unassigned } = useMemo(
         () => groupByRecipient(documents.data?.data ?? []),
         [documents.data],
     );
 
-    const person = people.find((candidate) => candidate.key === decoded);
+    const withPhotos = useMemo(
+        () => attachPhotos(people, storedPeople.data?.data ?? []),
+        [people, storedPeople.data],
+    );
+
+    const person = withPhotos.find((candidate) => candidate.key === decoded);
     const list = isUnassigned ? unassigned : (person?.documents ?? []);
     const urgent = list.filter(pressing);
     const rest = list.filter((document) => !pressing(document));
@@ -53,7 +61,7 @@ export default function PersonDocuments() {
             <NavBar back="Personnes" backTo="/?view=people" />
 
             <div className="flex flex-col items-center gap-2.5 pt-1 pb-5">
-                {isUnassigned ? (
+                {isUnassigned || !person ? (
                     <span className="inline-flex size-19 items-center justify-center rounded-full bg-surface-2 text-fg-3">
                         <svg
                             viewBox="0 0 24 24"
@@ -70,7 +78,13 @@ export default function PersonDocuments() {
                         </svg>
                     </span>
                 ) : (
-                    <Monogram name={name} size="lg" />
+                    /*
+                     * Ici l'avatar n'est pas dans un lien : il devient un vrai
+                     * bouton. Un appui simple suffit, le geste est atteignable
+                     * au clavier et annonce par VoiceOver — la contrepartie
+                     * necessaire de l'appui long, qui ne s'annonce nulle part.
+                     */
+                    <PersonAvatar person={person} size="lg" as="button" />
                 )}
 
                 <h1 className="text-center font-serif text-[1.625rem] leading-8 font-semibold tracking-[-0.02em]">

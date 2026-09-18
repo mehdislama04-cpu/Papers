@@ -13,6 +13,9 @@ use App\Http\Controllers\DocumentPageFileController;
 use App\Http\Controllers\DocumentReanalyzeController;
 use App\Http\Controllers\Ingest\IngestTokenController;
 use App\Http\Controllers\Ingest\ShortcutIngestController;
+use App\Http\Controllers\PersonController;
+use App\Http\Controllers\PersonPhotoController;
+use App\Http\Controllers\PersonPhotoFileController;
 use App\Http\Controllers\TodoController;
 use Illuminate\Support\Facades\Route;
 
@@ -106,6 +109,33 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::delete('/todos/{todo}', [TodoController::class, 'destroy'])->name('todos.destroy');
 
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+
+    /*
+    | Personnes.
+    |
+    | La liste ne renvoie que les personnes dont une décision a été
+    | enregistrée — aujourd'hui, celles qui ont une photo. Le regroupement des
+    | destinataires reste calculé par le front, qui recolle les photos par la
+    | clé de rapprochement.
+    |
+    | L'envoi de photo n'est PAS sous /people/{person} : au moment où
+    | l'utilisateur choisit une image, la personne n'existe peut-être pas
+    | encore en base. La requête porte donc la clé, et le contrôleur upserte.
+    */
+    Route::get('/people', [PersonController::class, 'index'])->name('people.index');
+    Route::post('/people/photo', [PersonPhotoController::class, 'store'])
+        ->middleware('throttle:60,1')
+        ->name('people.photo.store');
+    Route::delete('/people/{person}/photo', [PersonPhotoController::class, 'destroy'])
+        ->name('people.photo.destroy');
+
+    /*
+    | Fichier de la photo. Même dispositif que les pages : signature relative
+    | (l'hôte du tunnel de dev change à chaque session) plus session plus policy.
+    */
+    Route::get('/people/{person}/photo/file', PersonPhotoFileController::class)
+        ->middleware('signed:relative')
+        ->name('people.photo.file');
 
     /*
     | Calendrier iCloud (CalDAV).

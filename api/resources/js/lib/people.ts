@@ -12,6 +12,14 @@ export const PEOPLE_PAGE = '/documents?per_page=100';
 export interface Person {
     /** Cle stable, derivee du nom normalise. Sert d'identifiant d'URL. */
     key: string;
+    /**
+     * Identifiant serveur — present UNIQUEMENT si l'utilisateur a decide
+     * quelque chose de cette personne (aujourd'hui : lui donner une photo).
+     * Une personne sans decision n'existe qu'ici, le temps du rendu.
+     */
+    id?: string;
+    /** Photo choisie a la main. Absente : on retombe sur le monogramme. */
+    photoUrl?: string | null;
     /** Nom affiche : la variante la plus frequente, telle qu'imprimee. */
     name: string;
     /** Toutes les graphies rencontrees, de la plus frequente a la plus rare. */

@@ -6,11 +6,13 @@ import { api, type PaginatedEnvelope, type Envelope } from '../lib/api';
 import { categoryColor } from '../lib/categories';
 import { useOutbox } from '../lib/hooks';
 import { groupByRecipient, needsAttention, PEOPLE_PAGE } from '../lib/people';
+import { attachPhotos, useStoredPeople } from '../lib/personPhotos';
 import type { Category, Document, DocumentStatus } from '../lib/types';
 
 import { NavBar } from '../components/ui/NavBar';
 import { Segmented } from '../components/ui/Segmented';
-import { CategoryChip, Chevron, Monogram } from '../components/ui/Chips';
+import { CategoryChip, Chevron } from '../components/ui/Chips';
+import { PersonAvatar } from '../components/ui/PersonAvatar';
 import { DocumentRow } from '../components/ui/DocumentRow';
 import {
     Button,
@@ -263,9 +265,18 @@ function PeopleView() {
         placeholderData: keepPreviousData,
     });
 
-    const { people, unassigned } = useMemo(
+    const storedPeople = useStoredPeople();
+
+    const { people: grouped, unassigned } = useMemo(
         () => groupByRecipient(documents.data?.data ?? []),
         [documents.data],
+    );
+
+    // Les groupes viennent des documents, les photos du serveur : on recolle
+    // les deux par la cle de rapprochement.
+    const people = useMemo(
+        () => attachPhotos(grouped, storedPeople.data?.data ?? []),
+        [grouped, storedPeople.data],
     );
 
     const toMerge = useMemo(() => needsAttention(people), [people]);
@@ -309,7 +320,7 @@ function PeopleView() {
                         className="pressable flex items-center gap-3.5 px-3.5 py-3 active:bg-surface-2"
                         style={{ ['--i' as string]: Math.min(index, 8) }}
                     >
-                        <Monogram name={person.name} />
+                        <PersonAvatar person={person} />
                         <div className="min-w-0 flex-1">
                             <p className="truncate leading-[1.375rem] font-semibold">{person.name}</p>
                             <p className="flex items-center gap-1.5 text-[0.875rem] text-fg-3">

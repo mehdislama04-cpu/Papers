@@ -46,6 +46,19 @@ class User extends Authenticatable
     }
 
     /**
+     * Personnes — c'est-à-dire, aujourd'hui, les destinataires auxquels
+     * l'utilisateur a attaché quelque chose lui-même. Une personne dont il n'a
+     * rien décidé n'a pas de ligne : elle n'existe qu'à l'exécution, déduite
+     * des documents.
+     *
+     * @return HasMany<Person, $this>
+     */
+    public function people(): HasMany
+    {
+        return $this->hasMany(Person::class);
+    }
+
+    /**
      * Catégories PERSONNELLES uniquement. Les catégories système
      * (user_id NULL) sont exposées par Category::visibleTo().
      *

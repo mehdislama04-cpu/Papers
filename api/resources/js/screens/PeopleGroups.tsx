@@ -4,10 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 
 import { api, type PaginatedEnvelope } from '../lib/api';
 import { groupByRecipient, needsAttention, PEOPLE_PAGE } from '../lib/people';
+import { attachPhotos, useStoredPeople } from '../lib/personPhotos';
 import type { Document } from '../lib/types';
 
 import { NavBar } from '../components/ui/NavBar';
-import { Monogram } from '../components/ui/Chips';
+import { PersonAvatar } from '../components/ui/PersonAvatar';
 import { DocumentSkeletons, EmptyState, ErrorNote, Group } from '../components/ui/Layout';
 
 /**
@@ -28,8 +29,16 @@ export default function PeopleGroups() {
         queryFn: () => api.get<PaginatedEnvelope<Document>>(PEOPLE_PAGE),
     });
 
+    const storedPeople = useStoredPeople();
+
     const { people } = useMemo(() => groupByRecipient(documents.data?.data ?? []), [documents.data]);
-    const grouped = useMemo(() => needsAttention(people), [people]);
+
+    const withPhotos = useMemo(
+        () => attachPhotos(people, storedPeople.data?.data ?? []),
+        [people, storedPeople.data],
+    );
+
+    const grouped = useMemo(() => needsAttention(withPhotos), [withPhotos]);
 
     return (
         <div className="px-4 pb-8">
@@ -57,7 +66,7 @@ export default function PeopleGroups() {
                             to={`/people/${encodeURIComponent(person.key)}`}
                             className="pressable flex items-center gap-3 px-3.5 py-3 active:bg-surface-2"
                         >
-                            <Monogram name={person.name} size="sm" />
+                            <PersonAvatar person={person} size="sm" />
                             <div className="min-w-0">
                                 <p className="truncate font-semibold">{person.name}</p>
                                 <p className="text-[0.8125rem] text-fg-3">

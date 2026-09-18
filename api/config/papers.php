@@ -182,6 +182,13 @@ return [
         // SILENCIEUSEMENT sur PNG dans Safari -> le front sort du JPEG.
         'thumbnail_width' => 400,
         'thumbnail_quality' => 70,
+
+        // Photo d'une personne : un carré, recadré au centre. Le plus grand
+        // affichage est la fiche personne, 76 pt, soit 228 px sur un écran
+        // @3x — 320 px couvre ça avec de la marge sans stocker un portrait
+        // de 4 Mpx pour une pastille de 46 pt.
+        'avatar_size' => 320,
+        'avatar_quality' => 82,
     ],
 
     /*
