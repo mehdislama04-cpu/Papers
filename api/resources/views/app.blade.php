@@ -35,8 +35,9 @@
     {{-- black-translucent : le contenu passe SOUS la barre d'état, d'où les safe-area. --}}
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <meta name="theme-color" content="#f9fafb" media="(prefers-color-scheme: light)">
-    <meta name="theme-color" content="#030406" media="(prefers-color-scheme: dark)">
+    {{-- Une seule valeur, sans media : l'app est en clair quel que soit le
+         reglage de l'appareil (cf. resources/css/app.css). --}}
+    <meta name="theme-color" content="#f3f4f7">
 
     <meta name="description" content="Numérisez, classez et suivez vos documents papier.">
     {{-- Des documents privés n'ont rien à faire dans un index. --}}
@@ -52,13 +53,13 @@
         lancement depuis l'icône, y compris en thème sombre.
     --}}
     <style>
-        :root { color-scheme: light dark; }
-        /* Equivalents sRGB de --color-bg (resources/css/app.css) :
-           oklch(0.985 0.002 258) et oklch(0.108 0.008 258). A garder alignes. */
-        html, body { margin: 0; height: 100%; background-color: #f9fafb; }
-        @media (prefers-color-scheme: dark) {
-            html, body { background-color: #030406; }
-        }
+        /* L'app est en clair, toujours. `light` seul empeche un appareil en
+           sombre de repeindre le fond et les controles natifs avant que la
+           feuille de styles n'arrive. */
+        :root { color-scheme: light; }
+        /* Equivalent sRGB de --color-bg (resources/css/app.css) :
+           oklch(0.967 0.004 271). A garder aligne. */
+        html, body { margin: 0; height: 100%; background-color: #f3f4f7; }
         #app { min-height: 100%; }
     </style>
 

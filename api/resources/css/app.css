@@ -2,7 +2,15 @@
 
 @source '../js/**/*.{ts,tsx}';
 @source '../views/**/*.blade.php';
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+/* La page d'accueil livree avec Laravel n'est routee nulle part, mais ses
+ * classes `dark:` suffisaient a faire emettre tout un bloc
+ * @media (prefers-color-scheme: dark) dans la feuille finale — alors que l'app
+ * n'a pas de mode sombre. */
+@source not '../views/welcome.blade.php';
+/* Les vues de pagination de Laravel ne sont plus scannees : aucune vue blade
+ * ne pagine ici (l'API renvoie du JSON, la liste est rendue par React), et
+ * leurs classes `dark:` etaient le dernier reste de mode sombre dans la
+ * feuille livree. A remettre le jour ou une vue blade paginera vraiment. */
 
 /* ---------------------------------------------------------------------------
  * Systeme de design « encre & neon »
@@ -114,58 +122,19 @@
 }
 
 /* ---------------------------------------------------------------------------
- * Mode sombre
+ * Pas de mode sombre
  *
- * Pas une inversion : les surfaces MONTENT vers la lumiere au lieu de
- * descendre, et l'accent s'eclaircit (ink-600 -> ink-400) pour tenir le
- * contraste sur fond sombre.
+ * L'app est en clair, toujours, quel que soit le reglage du telephone ou du
+ * navigateur. Le `color-scheme: light` pose plus bas n'est donc pas decoratif :
+ * c'est lui qui force les champs, les selects, les barres de defilement et le
+ * fond par defaut du moteur a rester clairs sur un appareil en sombre. Sans
+ * lui, les controles natifs restent noirs au milieu d'une interface blanche.
  *
- * Ce bloc est hors @layer : il l'emporte donc sur les variables emises par
- * @theme dans `@layer theme`, sans avoir a jouer sur la specificite.
+ * Aucun `@media (prefers-color-scheme: dark)` et aucune variante `dark:` ne
+ * doit revenir ici : il n'y aurait rien pour les declencher, et une seconde
+ * palette latente finit toujours par diverger de celle qui sert. Le jeu de
+ * jetons sombres qui existait avant reste dans l'historique git.
  * ------------------------------------------------------------------------- */
-@media (prefers-color-scheme: dark) {
-    :root {
-        /* Fond quasi noir et cartes posees dessus : c'est le « grouped » sombre
-         * d'iOS (fond #000, carte #1C1C1E). La surface est calee sur ce
-         * #1C1C1E, sinon les cartes se confondent avec le fond. */
-        --color-bg: oklch(0.169 0.008 274);
-        --color-surface: oklch(0.218 0.012 271);
-        --color-surface-2: oklch(0.284 0.02 264);
-        --color-hairline: oklch(0.341 0.024 269 / 0.8);
-        --color-edge: oklch(0.285 0.018 266);
-        --color-fg: oklch(0.955 0.007 269);
-        --color-fg-2: oklch(0.725 0.021 267);
-        --color-fg-3: oklch(0.654 0.025 269);
-        --color-accent: oklch(0.67 0.174 271);
-        --color-accent-fg: oklch(0.67 0.174 271);
-        --color-accent-bg: oklch(0.552 0.247 266 / 0.3);
-        /* Texte SOMBRE sur l'accent clair : blanc sur ink-400 ne donne que
-         * 3:1, sous le seuil AA. Sur fond sombre, iOS fait de meme. */
-        --color-on-accent: oklch(0.169 0.008 274);
-        --color-chrome: oklch(0.169 0.008 274 / 0.86);
-
-        --color-capture: oklch(0.797 0.134 212);
-        --color-capture-fg: oklch(0.797 0.134 212);
-        --color-on-capture: oklch(0.169 0.008 274);
-
-        /* Sur fond sombre, chaque signal monte en clarte et `-fg` rejoint
-         * l'aplat : un texte colore n'a plus besoin d'etre assombri. */
-        --color-late: oklch(0.686 0.189 297);
-        --color-late-fg: oklch(0.686 0.189 297);
-        --color-late-bg: oklch(0.546 0.274 291 / 0.3);
-        --color-on-late: oklch(0.169 0.008 274);
-
-        --color-soon: oklch(0.863 0.149 85);
-        --color-soon-fg: oklch(0.863 0.149 85);
-        --color-soon-bg: oklch(0.846 0.169 85 / 0.22);
-        --color-on-soon: oklch(0.169 0.008 274);
-
-        --color-done: oklch(0.804 0.171 161);
-        --color-done-fg: oklch(0.804 0.171 161);
-        --color-done-bg: oklch(0.732 0.177 156 / 0.22);
-        --color-on-done: oklch(0.169 0.008 274);
-    }
-}
 
 /* Le blade pose un fond en dur avant l'arrivee du bundle (anti-flash). Cette
  * regle est hors @layer, donc elle l'emporte des que la feuille est chargee :
@@ -179,7 +148,9 @@ body {
  * Socle iOS
  * ------------------------------------------------------------------------- */
 :root {
-    color-scheme: light dark;
+    /* `light` seul, pas `light dark` : c'est ce qui tient les champs, les
+     * selects et les barres de defilement en clair sur un appareil en sombre. */
+    color-scheme: light;
 
     --safe-t: env(safe-area-inset-top, 0px);
     --safe-r: env(safe-area-inset-right, 0px);
