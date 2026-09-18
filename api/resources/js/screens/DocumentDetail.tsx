@@ -4,10 +4,12 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { api, type Envelope } from '../lib/api';
 import { normalizeRecipient } from '../lib/people';
+import { useMoveDocument } from '../lib/useCategories';
 import { formatAmount, type Document, type Todo } from '../lib/types';
 
 import { NavBar } from '../components/ui/NavBar';
 import { CategoryChip } from '../components/ui/Chips';
+import { CategorySheet } from '../components/ui/CategorySheet';
 import { Button, ErrorNote, Group, Row, SectionTitle, Skeleton } from '../components/ui/Layout';
 
 function formatDate(value: string | null): string | null {
@@ -72,6 +74,9 @@ export default function DocumentDetail() {
     const client = useQueryClient();
     const [page, setPage] = useState(0);
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const [moving, setMoving] = useState(false);
+
+    const move = useMoveDocument();
 
     const query = useQuery({
         queryKey: ['document', id],
@@ -127,8 +132,47 @@ export default function DocumentDetail() {
         <div className="px-4 pb-8">
             <NavBar back="Documents" backTo="/" />
 
+            <CategorySheet
+                open={moving}
+                onClose={() => setMoving(false)}
+                value={doc.category?.slug ?? null}
+                onPick={(slug) => move.mutate({ id: doc.id, category: slug })}
+                allowNone
+            />
+
             <header className="mb-4 flex items-start gap-3">
-                {doc.category && <CategoryChip category={doc.category} size="md" />}
+                {/*
+                  La pastille est un BOUTON : c'est par elle qu'on corrige un
+                  classement. L'analyse range toute seule et se trompe parfois ;
+                  jusqu'ici la seule correction offerte etait de relancer
+                  l'analyse, c'est-a-dire de reparier.
+                */}
+                <button
+                    type="button"
+                    onClick={() => setMoving(true)}
+                    aria-label={
+                        doc.category ? `Changer de catégorie — ${doc.category.name}` : 'Ranger dans une catégorie'
+                    }
+                    className="pressable shrink-0 rounded-[0.875rem]"
+                >
+                    {doc.category ? (
+                        <CategoryChip category={doc.category} size="md" />
+                    ) : (
+                        <span className="flex size-11 items-center justify-center rounded-[0.875rem] border border-dashed border-edge text-fg-3">
+                            <svg
+                                viewBox="0 0 24 24"
+                                className="size-5"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth={2}
+                                strokeLinecap="round"
+                                aria-hidden="true"
+                            >
+                                <path d="M12 5v14M5 12h14" />
+                            </svg>
+                        </span>
+                    )}
+                </button>
                 <div className="min-w-0 flex-1">
                     <h1 className="font-serif text-[1.625rem] leading-8 font-semibold tracking-[-0.02em]">
                         {doc.title}

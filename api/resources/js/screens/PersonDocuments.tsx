@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
@@ -8,8 +8,9 @@ import { attachStored, useStoredPeople } from '../lib/personPhotos';
 import { PICTOGRAM_FAMILY } from '../lib/pictograms';
 import type { Document } from '../lib/types';
 
-import { NavBar } from '../components/ui/NavBar';
+import { NavBar, NavAction } from '../components/ui/NavBar';
 import { Chevron } from '../components/ui/Chips';
+import { CategorySheet } from '../components/ui/CategorySheet';
 import { CategoryTile } from '../components/ui/CategoryTile';
 import { PersonAvatar } from '../components/ui/PersonAvatar';
 import { DocumentSkeletons, EmptyState, ErrorNote, Group } from '../components/ui/Layout';
@@ -32,6 +33,8 @@ export default function PersonDocuments() {
     const { person: key } = useParams<{ person: string }>();
     const decoded = key ? decodeURIComponent(key) : '';
     const isUnassigned = decoded === UNASSIGNED;
+
+    const [creating, setCreating] = useState(false);
 
     const documents = useQuery({
         queryKey: ['documents', 'people'],
@@ -82,7 +85,28 @@ export default function PersonDocuments() {
 
     return (
         <div className="px-4 pb-8">
-            <NavBar back="Documents" backTo="/" />
+            <NavBar
+                back="Documents"
+                backTo="/"
+                action={
+                    <NavAction onClick={() => setCreating(true)}>
+                        <span className="sr-only">Nouvelle catégorie</span>
+                        <svg
+                            viewBox="0 0 24 24"
+                            className="size-6"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth={2.2}
+                            strokeLinecap="round"
+                            aria-hidden="true"
+                        >
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                    </NavAction>
+                }
+            />
+
+            <CategorySheet open={creating} onClose={() => setCreating(false)} startInCreate />
 
             <div className="flex flex-col items-center gap-2 pt-1 pb-4">
                 {isUnassigned || !person ? (

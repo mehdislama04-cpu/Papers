@@ -65,6 +65,45 @@ export function categoryIconPath(icon: string | null | undefined): string {
     return (icon && ICON_PATHS[icon]) || ICON_PATHS.folder;
 }
 
+/** Les icones proposees a la creation, dans l'ordre d'affichage. */
+export const ICON_NAMES: string[] = [
+    'folder',
+    'receipt',
+    'file-signature',
+    'heart-pulse',
+    'landmark',
+    'banknote',
+    'shield-check',
+    'building-2',
+    'graduation-cap',
+    'home',
+    'car',
+    'briefcase',
+];
+
+/**
+ * Palette proposee a la creation.
+ *
+ * Ce sont les couleurs SYSTEME converties en hexadecimal, pas une seconde
+ * palette. Les categories systeme sont reharmonisees a l'affichage (voir
+ * SYSTEM_COLORS ci-dessus) mais une categorie personnelle rend la valeur brute
+ * servie par l'API : offrir ici les teintes d'origine de Tailwind ferait des
+ * pastilles personnelles plus criardes que les communes, cote a cote.
+ */
+export const CATEGORY_PALETTE: string[] = [
+    '#DF6A0C',
+    '#BB9300',
+    '#009882',
+    '#00A0A1',
+    '#0090A5',
+    '#008AC9',
+    '#7369D1',
+    '#945CCB',
+    '#B554BC',
+    '#D64B6B',
+    '#6C7A8E',
+];
+
 /**
  * Initiales d'un nom de personne, pour le monogramme.
  * « M. Jean Dupont » -> « JD ». Un seul mot -> ses deux premieres lettres.

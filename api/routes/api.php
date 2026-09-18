@@ -80,6 +80,10 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
     Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
     Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.show');
+    // Déplacer un document d'une catégorie à une autre : le classement
+    // automatique se trompe parfois, et relancer l'analyse n'est pas une
+    // correction, c'est un pari.
+    Route::patch('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
 
     Route::post('/documents/{document}/reanalyze', DocumentReanalyzeController::class)
@@ -109,6 +113,9 @@ Route::middleware('auth:sanctum')->group(function (): void {
     Route::delete('/todos/{todo}', [TodoController::class, 'destroy'])->name('todos.destroy');
 
     Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+    // Catégorie PERSONNELLE. Les douze catégories système ne se modifient pas :
+    // elles sont le socle commun et le vocabulaire ferme du modele d'extraction.
+    Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
 
     /*
     | Personnes.

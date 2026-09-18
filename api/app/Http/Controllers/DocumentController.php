@@ -8,8 +8,10 @@ use App\Enums\DocumentStatus;
 use App\Http\Controllers\Concerns\StoresDocumentPages;
 use App\Http\Requests\IndexDocumentRequest;
 use App\Http\Requests\StoreDocumentRequest;
+use App\Http\Requests\UpdateDocumentRequest;
 use App\Http\Resources\DocumentResource;
 use App\Jobs\AnalyzeDocument;
+use App\Models\Category;
 use App\Models\Document;
 use App\Services\Ai\OpenAiClient;
 use Illuminate\Http\JsonResponse;
@@ -127,6 +129,43 @@ class DocumentController extends Controller
     public function show(Request $request, Document $document): JsonResource
     {
         $this->authorize('view', $document);
+
+        return DocumentResource::make($document->load([
+            'pages',
+            'category',
+            'tags',
+            'todos' => fn ($query) => $query->with('calendarEvent')->orderByRaw('due_at asc nulls last'),
+        ]));
+    }
+
+    /**
+     * PATCH /api/documents/{document}
+     *
+     * Déplacer un document d'une catégorie à une autre.
+     *
+     * Le classement automatique reste la règle : il porte la quasi-totalité des
+     * documents et personne n'a envie de ranger à la main. Mais il se trompe,
+     * et jusqu'ici la seule correction disponible était de relancer l'analyse
+     * en espérant un autre verdict. Un choix de l'utilisateur, lui, n'est pas
+     * une hypothèse — d'où un geste direct.
+     */
+    public function update(UpdateDocumentRequest $request, Document $document): JsonResource
+    {
+        $this->authorize('update', $document);
+
+        $slug = $request->categorySlug();
+
+        $categoryId = $slug === null
+            ? null
+            : Category::query()
+                ->visibleTo($request->user())
+                ->where('slug', $slug)
+                // Une catégorie personnelle prime sur la catégorie système de
+                // même slug, comme au moment de l'analyse.
+                ->orderByRaw('user_id IS NULL')
+                ->value('id');
+
+        $document->forceFill(['category_id' => $categoryId])->save();
 
         return DocumentResource::make($document->load([
             'pages',

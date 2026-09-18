@@ -17,33 +17,12 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Catégories système (user_id NULL) : socle commun à tous les comptes.
-     *
-     * Le slug est l'identifiant stable manipulé par le front et par le modèle
-     * d'extraction ; il est volontairement sans accent ni espace. Le libellé,
-     * lui, est affiché tel quel.
-     *
-     * @var list<array{slug: string, name: string, color: string, icon: string}>
-     */
-    private const SYSTEM_CATEGORIES = [
-        ['slug' => 'facture', 'name' => 'Facture', 'color' => '#F97316', 'icon' => 'receipt'],
-        ['slug' => 'contrat', 'name' => 'Contrat', 'color' => '#6366F1', 'icon' => 'file-signature'],
-        ['slug' => 'sante', 'name' => 'Santé', 'color' => '#EF4444', 'icon' => 'heart-pulse'],
-        ['slug' => 'impots', 'name' => 'Impôts', 'color' => '#0EA5E9', 'icon' => 'landmark'],
-        ['slug' => 'banque', 'name' => 'Banque', 'color' => '#10B981', 'icon' => 'banknote'],
-        ['slug' => 'assurance', 'name' => 'Assurance', 'color' => '#8B5CF6', 'icon' => 'shield-check'],
-        ['slug' => 'administratif', 'name' => 'Administratif', 'color' => '#64748B', 'icon' => 'building-2'],
-        ['slug' => 'scolaire', 'name' => 'Scolaire', 'color' => '#F59E0B', 'icon' => 'graduation-cap'],
-        ['slug' => 'immobilier', 'name' => 'Immobilier', 'color' => '#14B8A6', 'icon' => 'home'],
-        ['slug' => 'vehicule', 'name' => 'Véhicule', 'color' => '#3B82F6', 'icon' => 'car'],
-        ['slug' => 'emploi', 'name' => 'Emploi', 'color' => '#A855F7', 'icon' => 'briefcase'],
-        ['slug' => 'autre', 'name' => 'Autre', 'color' => '#9CA3AF', 'icon' => 'folder'],
-    ];
-
     public function run(): void
     {
-        $this->seedSystemCategories();
+        // Les catégories vivent dans leur propre seeder : c'est LUI qu'on lance
+        // en production (db:seed --class=CategorySeeder --force), sans risquer
+        // d'appeler au passage le jeu de démonstration.
+        $this->call(CategorySeeder::class);
 
         // Le jeu de démonstration n'a rien à faire en production.
         if (! app()->environment('production')) {
@@ -51,24 +30,6 @@ class DatabaseSeeder extends Seeder
         }
     }
 
-    /**
-     * Idempotent : `db:seed` peut être rejoué après l'ajout d'une catégorie
-     * sans dupliquer les existantes (index unique partiel sur slug WHERE
-     * user_id IS NULL).
-     */
-    private function seedSystemCategories(): void
-    {
-        foreach (self::SYSTEM_CATEGORIES as $category) {
-            Category::query()->updateOrCreate(
-                ['user_id' => null, 'slug' => $category['slug']],
-                [
-                    'name' => $category['name'],
-                    'color' => $category['color'],
-                    'icon' => $category['icon'],
-                ],
-            );
-        }
-    }
 
     private function seedDemoUser(): void
     {
