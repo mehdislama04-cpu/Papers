@@ -63,4 +63,26 @@ class CategoryController extends Controller
 
         return CategoryResource::make($category)->response()->setStatusCode(201);
     }
+
+    /**
+     * DELETE /api/categories/{category}
+     *
+     * Seulement une catégorie PERSONNELLE, et seulement la sienne : la policy
+     * s'en charge. Les douze catégories système sont le socle commun et le
+     * vocabulaire du modèle — en retirer une casserait le classement pour tout
+     * le monde.
+     *
+     * Les documents qui y étaient rangés ne sont PAS supprimés : la clé
+     * étrangère est en nullOnDelete, ils redeviennent simplement sans
+     * catégorie. Supprimer un rangement ne doit jamais supprimer ce qu'il
+     * rangeait.
+     */
+    public function destroy(Category $category): JsonResponse
+    {
+        $this->authorize('delete', $category);
+
+        $category->delete();
+
+        return response()->json(status: 204);
+    }
 }

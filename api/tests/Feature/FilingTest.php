@@ -107,6 +107,57 @@ final class FilingTest extends TestCase
     }
 
     #[Test]
+    public function supprimer_une_categorie_personnelle_libere_ses_documents(): void
+    {
+        $alice = User::factory()->create();
+
+        $id = $this->actingAs($alice)
+            ->postJson('/api/categories', ['name' => 'Voyages'])
+            ->assertCreated()
+            ->json('data.id');
+
+        $document = Document::factory()->for($alice)->create(['category_id' => $id]);
+
+        $this->actingAs($alice)->deleteJson("/api/categories/{$id}")->assertNoContent();
+
+        // Le document survit : supprimer un rangement ne supprime pas ce qu'il
+        // rangeait.
+        $this->assertNull($document->refresh()->category_id);
+        $this->assertDatabaseHas('documents', ['id' => $document->getKey()]);
+    }
+
+    #[Test]
+    public function une_categorie_systeme_ne_se_supprime_pas(): void
+    {
+        $alice = User::factory()->create();
+        $facture = Category::query()->system()->where('slug', 'facture')->firstOrFail();
+
+        // Elle est le socle commun ET le vocabulaire du modele d'extraction :
+        // la retirer casserait le classement pour tout le monde.
+        $this->actingAs($alice)
+            ->deleteJson("/api/categories/{$facture->getKey()}")
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('categories', ['id' => $facture->getKey()]);
+    }
+
+    #[Test]
+    public function on_ne_supprime_pas_la_categorie_d_un_autre(): void
+    {
+        $alice = User::factory()->create();
+        $bob = User::factory()->create();
+
+        $id = $this->actingAs($bob)
+            ->postJson('/api/categories', ['name' => 'Voyages'])
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->actingAs($alice)->deleteJson("/api/categories/{$id}")->assertForbidden();
+
+        $this->assertDatabaseHas('categories', ['id' => $id]);
+    }
+
+    #[Test]
     public function deplacer_un_document_change_sa_categorie(): void
     {
         $alice = User::factory()->create();

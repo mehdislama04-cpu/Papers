@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { Link, useNavigate, useParams } from 'react-router';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 
 import { api, type PaginatedEnvelope } from '../lib/api';
@@ -8,7 +8,9 @@ import { attachStored, useStoredPeople } from '../lib/personPhotos';
 import { categoryPictogram } from '../lib/pictograms';
 import type { Document } from '../lib/types';
 
-import { NavBar } from '../components/ui/NavBar';
+import { useCategories, useDeleteCategory } from '../lib/useCategories';
+
+import { NavBar, NavAction } from '../components/ui/NavBar';
 import { CategoryChip } from '../components/ui/Chips';
 import { DocumentRow } from '../components/ui/DocumentRow';
 import { DocumentSkeletons, EmptyState, ErrorNote, Group, SectionTitle } from '../components/ui/Layout';
@@ -82,6 +84,11 @@ export default function PersonCategoryDocuments() {
     const isUnassigned = decoded === UNASSIGNED;
 
     const [sort, setSort] = useState<Sort>('date');
+    const [confirmDelete, setConfirmDelete] = useState(false);
+
+    const navigate = useNavigate();
+    const categories = useCategories();
+    const removeCategory = useDeleteCategory();
 
     const documents = useQuery({
         queryKey: ['documents', 'people'],
@@ -118,7 +125,16 @@ export default function PersonCategoryDocuments() {
         );
     }, [owned, slug, sort]);
 
-    const category = list.find((document) => document.category?.slug === slug)?.category;
+    /*
+     | La categorie vient de la LISTE des categories, pas d'un document.
+     |
+     | La deduire des documents presents marchait tant qu'il y en avait : une
+     | categorie vide — celle qu'on vient justement de creer — s'affichait
+     | « Categorie », sans nom ni couleur.
+     */
+    const category =
+        (categories.data?.data ?? []).find((item) => item.slug === slug) ??
+        list.find((document) => document.category?.slug === slug)?.category;
 
     const title =
         slug === ALL
@@ -148,7 +164,53 @@ export default function PersonCategoryDocuments() {
 
     return (
         <div className="px-4 pb-8">
-            <NavBar back={personName} backTo={`/people/${encodeURIComponent(decoded)}`} />
+            <NavBar
+                back={personName}
+                backTo={`/people/${encodeURIComponent(decoded)}`}
+                action={
+                    /*
+                     * Seulement les categories PERSONNELLES. Les douze du socle
+                     * sont le vocabulaire du modele d'extraction : en retirer
+                     * une casserait le classement pour tout le monde.
+                     */
+                    category && !category.is_system ? (
+                        <NavAction
+                            onClick={() => {
+                                if (!confirmDelete) {
+                                    setConfirmDelete(true);
+
+                                    return;
+                                }
+
+                                removeCategory.mutate(category.id, {
+                                    onSuccess: () =>
+                                        navigate(`/people/${encodeURIComponent(decoded)}`, {
+                                            replace: true,
+                                        }),
+                                });
+                            }}
+                            disabled={removeCategory.isPending}
+                        >
+                            {confirmDelete ? 'Confirmer' : 'Supprimer'}
+                        </NavAction>
+                    ) : undefined
+                }
+            />
+
+            {confirmDelete && category && (
+                <p className="mb-3 rounded-md bg-soon-bg px-3.5 py-2.5 text-[0.9375rem] text-soon-fg">
+                    {/* « Les 0 document qu'elle contient » : le cas vide merite sa
+                        propre phrase, il est le plus frequent juste apres une
+                        creation ratee. */}
+                    {list.length === 0
+                        ? `Supprimer « ${category.name} » ? Elle ne contient aucun document.`
+                        : `Supprimer « ${category.name} » ? ${
+                              list.length === 1
+                                  ? 'Le document qu’elle contient ne sera pas supprimé : il redeviendra'
+                                  : `Les ${list.length} documents qu’elle contient ne seront pas supprimés : ils redeviendront`
+                          } simplement sans catégorie.`}
+                </p>
+            )}
 
             <div className="flex flex-col items-center gap-2 pt-1 pb-3">
                 {pictogram ? (

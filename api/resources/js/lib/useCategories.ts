@@ -38,6 +38,25 @@ export function useCreateCategory() {
 }
 
 /**
+ * Supprime une categorie personnelle.
+ *
+ * Les documents qui y etaient ranges redeviennent sans categorie : ils ne
+ * disparaissent pas. Il faut donc reprendre aussi les listes de documents.
+ */
+export function useDeleteCategory() {
+    const client = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id: number) => api.delete(`/categories/${id}`),
+        onSuccess: () => {
+            void client.invalidateQueries({ queryKey: ['categories'] });
+            void client.invalidateQueries({ queryKey: ['documents'] });
+            void client.invalidateQueries({ queryKey: ['document'] });
+        },
+    });
+}
+
+/**
  * Deplace un document.
  *
  * `category: null` est une valeur, pas un oubli : « sans categorie » est un

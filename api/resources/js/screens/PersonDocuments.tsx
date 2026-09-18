@@ -6,6 +6,7 @@ import { api, type PaginatedEnvelope } from '../lib/api';
 import { groupByRecipient, PEOPLE_PAGE } from '../lib/people';
 import { attachStored, useStoredPeople } from '../lib/personPhotos';
 import { PICTOGRAM_FAMILY } from '../lib/pictograms';
+import { useCategories } from '../lib/useCategories';
 import type { Document } from '../lib/types';
 
 import { NavBar, NavAction } from '../components/ui/NavBar';
@@ -35,6 +36,8 @@ export default function PersonDocuments() {
     const isUnassigned = decoded === UNASSIGNED;
 
     const [creating, setCreating] = useState(false);
+
+    const categories = useCategories();
 
     const documents = useQuery({
         queryKey: ['documents', 'people'],
@@ -77,6 +80,31 @@ export default function PersonDocuments() {
 
         return [...map.values()].sort((a, b) => b.count - a.count);
     }, [isUnassigned, person, unassigned]);
+
+    /*
+     | Les tuiles affichees.
+     |
+     | Une categorie SYSTEME vide reste cachee : douze tuiles dont neuf a zero
+     | feraient passer un rangement possible pour un rangement existant.
+     |
+     | Une categorie PERSONNELLE vide, elle, s'affiche. La difference n'est pas
+     | cosmetique : celle-la, quelqu'un l'a creee expres, a l'instant. La cacher
+     | jusqu'a ce qu'elle contienne un document donnait exactement l'impression
+     | que la creation n'avait rien fait.
+     */
+    const tiles = useMemo(() => {
+        const byCategory = new Map(spread.map((entry) => [entry.category.slug, entry]));
+
+        for (const category of categories.data?.data ?? []) {
+            if (category.is_system || byCategory.has(category.slug)) continue;
+
+            byCategory.set(category.slug, { category, count: 0 });
+        }
+
+        return [...byCategory.values()].sort(
+            (a, b) => b.count - a.count || a.category.name.localeCompare(b.category.name, 'fr'),
+        );
+    }, [spread, categories.data]);
 
     const classified = spread.reduce((total, entry) => total + entry.count, 0);
     const unclassified = list.length - classified;
@@ -157,7 +185,7 @@ export default function PersonDocuments() {
                     </Group>
 
                     <div className="grid grid-cols-3 gap-2.5">
-                        {spread.map((entry) => (
+                        {tiles.map((entry) => (
                             <CategoryTile
                                 key={entry.category.slug}
                                 category={entry.category}

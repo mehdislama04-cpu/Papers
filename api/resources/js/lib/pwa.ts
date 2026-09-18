@@ -61,6 +61,19 @@ export function registerServiceWorker(options: RegisterOptions): PwaHandle {
         .then((registration) => {
             options.onReady?.(registration);
 
+            /*
+             | Verification IMMEDIATE, en plus de l'intervalle et du retour au
+             | premier plan.
+             |
+             | `register()` sur une inscription qui existe deja ne redemande pas
+             | toujours le script : l'app peut alors rester des heures sur une
+             | version perimee sans que rien ne l'annonce. C'est exactement ce
+             | qui s'est produit — un backend a jour servant un front d'avant,
+             | et trois pannes fantomes a la cle : photo muette, categories
+             | absentes, creation sans effet. Aucune n'existait dans le code.
+             */
+            void registration.update().catch(() => undefined);
+
             if (registration.waiting && navigator.serviceWorker.controller) {
                 announce(registration.waiting);
             }

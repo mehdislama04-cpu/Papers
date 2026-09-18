@@ -116,6 +116,11 @@ Route::middleware('auth:sanctum')->group(function (): void {
     // Catégorie PERSONNELLE. Les douze catégories système ne se modifient pas :
     // elles sont le socle commun et le vocabulaire ferme du modele d'extraction.
     Route::post('/categories', [CategoryController::class, 'store'])->name('categories.store');
+    // Suppression reservee aux categories personnelles (cf. CategoryPolicy).
+    // Les documents ranges dedans redeviennent sans categorie, ils ne
+    // disparaissent pas.
+    Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])
+        ->name('categories.destroy');
 
     /*
     | Personnes.
